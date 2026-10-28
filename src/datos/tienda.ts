@@ -24,7 +24,7 @@ export const proyecto = {
     asignatura: "DSY1104 Desarrollo Fullstack II",
     institucion: "Duoc UC",
     integrantes: ["Nicolás Rojas"],
-    repositorio: "https://github.com/TU_USUARIO/sonido-vivo",
+    repositorio: "https://github.com/Nicolas-Rojas1125/sonido-vivo",
 };
 
 export interface PuntoRetiro {

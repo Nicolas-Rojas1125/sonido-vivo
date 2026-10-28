@@ -161,7 +161,7 @@ git init
 git add .
 git commit -m "EP2: frontend React Sonido Vivo con pruebas Jasmine/Karma"
 git branch -M main
-git remote add origin https://github.com/TU_USUARIO/sonido-vivo.git
+git remote add origin https://github.com/Nicolas-Rojas1125/sonido-vivo.git
 git push -u origin main
 ```
 
