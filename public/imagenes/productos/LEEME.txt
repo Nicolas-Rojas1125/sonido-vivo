@@ -1,0 +1,77 @@
+IMÁGENES DE PRODUCTOS – Sonido Vivo
+
+Guarda aquí una foto por producto, con el CÓDIGO como nombre de archivo y extensión .jpg
+(respeta mayúsculas). Si falta una foto, la app muestra una imagen genérica.
+Tamaño recomendado: cuadrada o 4:3, mínimo 600 px de ancho, fondo blanco o claro, menos de 300 KB.
+
+
+[guitarras-acusticas]
+GA001.jpg   Guitarra Acústica Folk – Yamaha F310
+GA002.jpg   Guitarra Acústica Dreadnought – Fender CD-60S
+GA003.jpg   Guitarra Acústica Clásica 4/4 – Yamaha C40
+GA004.jpg   Guitarra Electroacústica – Takamine GN20CE
+GA005.jpg   Guitarra 3/4 Niños – Yamaha JR1
+
+[guitarras-electricas]
+GE001.jpg   Guitarra Eléctrica Stratocaster – Squier Affinity Strat
+GE002.jpg   Guitarra Eléctrica Les Paul – Epiphone Les Paul Std
+GE003.jpg   Guitarra Eléctrica SG – Epiphone SG Standard
+GE004.jpg   Guitarra Eléctrica Telecaster – Squier Affinity Tele
+GE005.jpg   Guitarra Eléctrica Semi-hollow – Epiphone ES-335
+
+[bajos]
+BA001.jpg   Bajo Eléctrico 4 Cuerdas – Squier Affinity PJ
+BA002.jpg   Bajo Eléctrico Jazz Bass – Fender Player Jazz
+BA003.jpg   Bajo Acústico 4 Cuerdas – Yamaha APX700II
+
+[baterias]
+BT001.jpg   Batería Acústica 5 piezas – Pearl Roadshow
+BT002.jpg   Batería Electrónica 8 pads – Roland TD-02KV
+BT003.jpg   Caja Snare 14" – Pearl STE1450
+BT004.jpg   Platillo Hi-Hat 14" – Zildjian A Series
+BT005.jpg   Platillo Crash 16" – Zildjian A Series
+
+[teclados]
+TC001.jpg   Teclado Digital 61 teclas – Yamaha PSR-E373
+TC002.jpg   Piano Digital 88 teclas – Yamaha P-45
+TC003.jpg   Sintetizador 49 teclas – Arturia MiniLab MKII
+TC004.jpg   Teclado MIDI 88 teclas – M-Audio Hammer 88
+
+[amplificadores]
+AM001.jpg   Amplificador Guitarra 15W – Fender Frontman 15G
+AM002.jpg   Amplificador Guitarra 40W – Marshall MG40GFX
+AM003.jpg   Amplificador Bajo 100W – Hartke HD100
+AM004.jpg   Amplificador Acústico 40W – Fishman Loudbox Mini
+
+[microfonos]
+MI001.jpg   Micrófono Dinámico Cardioide – Shure SM58
+MI002.jpg   Micrófono Dinámico Instrumento – Shure SM57
+MI003.jpg   Micrófono Condensador – Audio-Tech. AT2020
+MI004.jpg   Micrófono USB de Condensador – Blue Yeti
+
+[pedales]
+PE001.jpg   Pedal Distorsión – Boss DS-1
+PE002.jpg   Pedal Reverb – Boss RV-6
+PE003.jpg   Pedal Multi-efectos – Boss ME-80
+PE004.jpg   Pedal Tuner Cromático – Boss TU-3
+PE005.jpg   Pedal Delay – MXR Carbon Copy
+PE006.jpg   Pedal Overdrive – Ibanez TS9
+
+[accesorios]
+AC001.jpg   Cuerdas Guitarra Eléctrica 09-42 – Ernie Ball Super Slinky
+AC002.jpg   Cuerdas Guitarra Acústica 12-53 – Ernie Ball Earthwood
+AC003.jpg   Cuerdas Bajo 45-105 – Ernie Ball Regular Slinky
+AC004.jpg   Púas de Guitarra x10 (0.73mm) – Fender 351
+AC005.jpg   Capotraste Guitarra – Dunlop Trigger
+AC006.jpg   Afinador de Clip – Snark SN-5
+AC007.jpg   Cable Instrumento 3m – Monster S100-I-3
+AC008.jpg   Cable Instrumento 6m – Monster S100-I-6
+AC009.jpg   Soporte Guitarra de Piso – Hercules GS302B
+AC010.jpg   Soporte Guitarra de Pared – Hercules WAH-202
+
+[estudio]
+ES001.jpg   Interfaz de Audio 2x2 USB – Focusrite Scarlett Solo
+ES002.jpg   Auriculares de Estudio – Audio-Tech. ATH-M20x
+ES003.jpg   Auriculares de Estudio Pro – Audio-Tech. ATH-M50x
+ES004.jpg   Monitor de Estudio 5" – Yamaha HS5
+ES005.jpg   Pop Filter para Micrófono – Sennheiser MZP 40

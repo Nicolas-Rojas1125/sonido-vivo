@@ -1,0 +1,429 @@
+/* =====================================================================
+   Estilos propios de Sonido Vivo.
+   La estructura responsiva (grilla, columnas, menú hamburguesa, tablas)
+   la entrega Bootstrap; aquí solo van los colores de la marca y detalles.
+   ===================================================================== */
+
+:root {
+  --sv-oscuro: #1d1b26;
+  --sv-oscuro-2: #2c2938;
+  --sv-acento: #e4572e;
+  --sv-acento-hover: #c7451f;
+  --sv-dorado: #f2b134;
+  --sv-fondo: #f6f4f1;
+  --sv-texto: #24212c;
+  --bs-body-bg: var(--sv-fondo);
+  --bs-body-color: var(--sv-texto);
+  --bs-link-color-rgb: 199, 69, 31;
+  --bs-link-hover-color-rgb: 160, 52, 20;
+}
+
+body {
+  background-color: var(--sv-fondo);
+  color: var(--sv-texto);
+}
+
+img {
+  max-width: 100%;
+}
+
+.text-marca {
+  color: var(--sv-acento);
+}
+
+/* ---------- Botones de la marca ---------- */
+.btn-marca {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--sv-acento);
+  --bs-btn-border-color: var(--sv-acento);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sv-acento-hover);
+  --bs-btn-hover-border-color: var(--sv-acento-hover);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--sv-acento-hover);
+  --bs-btn-active-border-color: var(--sv-acento-hover);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: #b9a9a3;
+  --bs-btn-disabled-border-color: #b9a9a3;
+  --bs-btn-focus-shadow-rgb: 228, 87, 46;
+}
+
+.btn-outline-marca {
+  --bs-btn-color: var(--sv-acento-hover);
+  --bs-btn-border-color: var(--sv-acento);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sv-acento);
+  --bs-btn-hover-border-color: var(--sv-acento);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--sv-acento);
+  --bs-btn-active-border-color: var(--sv-acento);
+  --bs-btn-focus-shadow-rgb: 228, 87, 46;
+}
+
+.btn-oscuro {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--sv-oscuro);
+  --bs-btn-border-color: var(--sv-oscuro);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--sv-oscuro-2);
+  --bs-btn-hover-border-color: var(--sv-oscuro-2);
+}
+
+.btn-filtro {
+  --bs-btn-color: var(--sv-texto);
+  --bs-btn-bg: #fff;
+  --bs-btn-border-color: #ddd6d0;
+  --bs-btn-hover-color: var(--sv-texto);
+  --bs-btn-hover-bg: #efe9e4;
+  --bs-btn-hover-border-color: #cfc6bf;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--sv-oscuro);
+  --bs-btn-active-border-color: var(--sv-oscuro);
+  border-radius: 999px;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--sv-acento);
+  box-shadow: 0 0 0 0.2rem rgba(228, 87, 46, 0.2);
+}
+
+.form-check-input:checked {
+  background-color: var(--sv-acento);
+  border-color: var(--sv-acento);
+}
+
+/* ---------- Encabezado y navegación ---------- */
+.franja-superior {
+  background-color: #000;
+  color: #cfcbd6;
+  padding: 4px 0;
+}
+
+.barra-navegacion {
+  background-color: var(--sv-oscuro);
+}
+
+.barra-navegacion .navbar-brand {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.logo-marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--sv-acento);
+  color: #fff;
+  font-size: 1.1rem;
+}
+
+.barra-navegacion .nav-link.active {
+  color: var(--sv-dorado) !important;
+  font-weight: 600;
+}
+
+@media (max-width: 991.98px) {
+  .barra-navegacion .navbar-nav {
+    padding-top: 0.75rem;
+  }
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  background:
+    radial-gradient(circle at 85% 20%, rgba(242, 177, 52, 0.35), transparent 40%),
+    linear-gradient(135deg, var(--sv-oscuro) 0%, #3d2a3a 60%, var(--sv-acento) 140%);
+  color: #fff;
+  padding: 72px 0;
+}
+
+.hero-compacto {
+  padding: 36px 0;
+}
+
+.hero .lead {
+  max-width: 640px;
+  color: #ece8f2;
+}
+
+/* ---------- Carrusel ---------- */
+.carrusel-inicio .carousel-item img {
+  height: clamp(220px, 42vw, 440px);
+  object-fit: cover;
+  background-color: var(--sv-oscuro-2);
+}
+
+/* Animación al cambiar de imagen: aparece con un fundido y un leve acercamiento */
+.carrusel-animado img {
+  animation: carrusel-entrada 0.8s ease;
+}
+
+.carrusel-animado .carousel-caption {
+  animation: carrusel-texto 0.8s ease;
+}
+
+@keyframes carrusel-entrada {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes carrusel-texto {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Personas que activaron "reducir movimiento" en su sistema: sin animación */
+@media (prefers-reduced-motion: reduce) {
+  .carrusel-animado img,
+  .carrusel-animado .carousel-caption {
+    animation: none;
+  }
+}
+
+.carrusel-inicio .carousel-caption {
+  background: rgba(29, 27, 38, 0.65);
+  border-radius: 12px;
+  padding: 10px 16px;
+  bottom: 2.25rem;
+}
+
+/* ---------- Tarjetas ---------- */
+.card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(29, 27, 38, 0.07);
+}
+
+.tarjeta-producto .contenedor-imagen {
+  display: block;
+  background-color: #fff;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+}
+
+.tarjeta-producto .card-img-top {
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  padding: 12px;
+  transition: transform 0.2s ease;
+}
+
+.tarjeta-producto:hover .card-img-top {
+  transform: scale(1.04);
+}
+
+.tarjeta-producto .enlace-producto {
+  color: var(--sv-texto);
+  text-decoration: none;
+}
+
+.tarjeta-producto .enlace-producto:hover {
+  color: var(--sv-acento-hover);
+}
+
+.precio {
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--sv-oscuro);
+}
+
+.tarjeta-info .card-img-top {
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.icono-info {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.tarjeta-categoria {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 72px;
+  padding: 12px;
+  border-radius: 12px;
+  background-color: #fff;
+  color: var(--sv-texto);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(29, 27, 38, 0.07);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tarjeta-categoria:hover {
+  background-color: var(--sv-oscuro);
+  color: #fff;
+}
+
+.imagen-detalle {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background-color: #fff;
+}
+
+.miniatura {
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  background-color: #fff;
+}
+
+.selector-cantidad {
+  max-width: 9.5rem;
+}
+
+@media (min-width: 992px) {
+  .resumen-compra {
+    position: sticky;
+    top: 96px;
+  }
+}
+
+/* ---------- Seguimiento del pedido ---------- */
+.seguimiento-pedido {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 8px;
+}
+
+.seguimiento-pedido li {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  font-size: 0.85rem;
+  color: #8a8494;
+}
+
+.seguimiento-pedido li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 3px;
+  background-color: #ddd6d0;
+}
+
+.seguimiento-pedido li.completado:not(:last-child)::after {
+  background-color: var(--sv-acento);
+}
+
+.seguimiento-pedido .punto {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ddd6d0;
+  color: #fff;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.seguimiento-pedido li.completado {
+  color: var(--sv-texto);
+  font-weight: 600;
+}
+
+.seguimiento-pedido li.completado .punto {
+  background-color: var(--sv-acento);
+}
+
+/* ---------- Mapa ---------- */
+.mapa-tiendas {
+  height: 380px;
+  width: 100%;
+  z-index: 0;
+}
+
+@media (max-width: 575.98px) {
+  .mapa-tiendas {
+    height: 280px;
+  }
+}
+
+/* ---------- Panel de administración ---------- */
+.menu-admin .nav-link {
+  color: var(--sv-texto);
+  white-space: nowrap;
+}
+
+.menu-admin .nav-link.active {
+  background-color: var(--sv-oscuro);
+  color: #fff;
+}
+
+@media (max-width: 767.98px) {
+  .menu-admin .nav {
+    flex-wrap: wrap;
+  }
+
+  .menu-admin .nav-link {
+    padding: 0.35rem 0.75rem;
+  }
+}
+
+.tarjeta-resumen {
+  border-left: 5px solid var(--sv-acento);
+}
+
+.tarjeta-resumen.borde-warning {
+  border-left-color: var(--bs-warning);
+}
+
+.tarjeta-resumen.borde-info {
+  border-left-color: var(--bs-info);
+}
+
+.tarjeta-resumen.borde-success {
+  border-left-color: var(--bs-success);
+}
+
+/* ---------- Footer ---------- */
+.pie-pagina {
+  background-color: var(--sv-oscuro);
+  color: #cfcbd6;
+}
+
+.pie-pagina h2 {
+  color: #fff;
+}
+
+.pie-pagina a {
+  color: #cfcbd6;
+  text-decoration: none;
+}
+
+.pie-pagina a:hover {
+  color: var(--sv-dorado);
+}
+
+.pie-pagina hr {
+  border-color: #4a4558;
+}

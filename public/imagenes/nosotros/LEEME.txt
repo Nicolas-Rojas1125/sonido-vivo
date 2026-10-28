@@ -1,0 +1,8 @@
+IMÁGENES DE LA PÁGINA "NOSOTROS"
+
+asesoria.jpg  -> "Asesoría de músicos"
+taller.jpg    -> "Taller de reparación"
+tienda.jpg    -> "Tienda física"
+
+Formato horizontal 16:10 (ej: 800 x 500 px).
+Para cambiar textos o rutas edita: src/paginas/Nosotros.tsx

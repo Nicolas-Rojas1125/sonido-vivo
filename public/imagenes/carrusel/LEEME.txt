@@ -1,0 +1,8 @@
+IMÁGENES DEL CARRUSEL (página de inicio)
+
+carrusel1.jpg  -> "Guitarras para cada estilo"  (ej: muro de guitarras)
+carrusel2.jpg  -> "Arma tu sala de ensayo"      (ej: batería y amplificadores)
+carrusel3.jpg  -> "Graba en casa"               (ej: micrófono + interfaz)
+
+Formato horizontal (panorámico), idealmente 1600 x 700 px o similar.
+Para cambiar títulos/textos o agregar más imágenes edita: src/datos/inicio.ts

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#efe9e4"/>
+  <circle cx="400" cy="270" r="110" fill="#e4572e" opacity="0.15"/>
+  <path d="M430 190v130a40 40 0 1 1-20-34.6V215l-70 18v107a40 40 0 1 1-20-34.6V218z" fill="#1d1b26" opacity="0.55"/>
+  <text x="400" y="460" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="30" fill="#6d6577">Imagen no disponible</text>
+</svg>
