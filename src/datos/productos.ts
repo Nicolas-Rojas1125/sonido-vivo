@@ -1,6 +1,7 @@
 import type { Producto } from "../tipos/Producto";
 
-// Catálogo inicial tomado del archivo "DSY1104 - Forma B - Catalogo Sonido Vivo.xlsx" (51 productos de muestra).
+// Catálogo inicial (el backend lo carga en MySQL con la migración V3__insertar_catalogo.sql de ms-tienda;
+// aquí se usa en las pruebas). Tomado del archivo "DSY1104 - Forma B - Catalogo Sonido Vivo.xlsx" (51 productos de muestra).
 // La imagen de cada producto se busca en /public/imagenes/productos/<CODIGO>.jpg
 // Si la imagen no existe, el componente ImagenProducto muestra una imagen de reemplazo.
 export const productosIniciales: Producto[] = [

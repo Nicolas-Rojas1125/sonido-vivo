@@ -1,4 +1,6 @@
 # Especificación de Requisitos del Software (ERS)
+
+> **Versión vigente (EP3): `docs/entregables/DSY1104_ERS_Especificacion_de_Requisitos_SonidoVivo.docx`** (plantilla Duoc, IEEE 830). Este archivo es la versión 2.0 de la EP2 y se conserva como historial.
 ## Sonido Vivo – Tienda online de instrumentos y equipos musicales
 
 | | |
@@ -77,7 +79,7 @@ Nivel técnico: el dueño maneja Excel; los vendedores usan WhatsApp/Instagram; 
 ### 2.4 Restricciones
 - Frontend **React (SPA)**; backend **Spring Boot** en microservicios; comunicación solo por **API REST/JSON**; BD relacional normalizada (3FN); AWS + Docker.
 - Interfaz responsiva desde **360 px**; menú tipo hamburguesa en móvil.
-- Datos de ventas y clientes confidenciales: **ninguna vista ni endpoint sin autenticación**, salvo inicio de sesión y registro.
+- Datos de ventas y clientes confidenciales: **ningún dato de ventas, pedidos ni clientes sin autenticación**. Lo público (catálogo, información de la tienda y formulario de contacto) se puede ver como invitado, igual que en una tienda online convencional; comprar exige cuenta de Cliente.
 - Dispositivos: teléfonos Android de los vendedores, un PC compartido y el notebook del dueño.
 
 ### 2.5 Suposiciones
@@ -96,7 +98,7 @@ Prioridad: **A** = esencial, **M** = importante, **B** = deseable. Estado EP2: �
 |---|---|---|---|
 | RF-01 | El sistema permite iniciar sesión con correo y contraseña e informa si los datos son incorrectos o la cuenta está desactivada | A | ✅ |
 | RF-02 | Un visitante puede registrarse como Cliente con RUT (validado con dígito verificador), nombre, correo y contraseña segura (mín. 8 caracteres con mayúscula, minúscula y número) | A | ✅ |
-| RF-03 | Sin sesión, cualquier vista redirige al inicio de sesión (excepto login y registro); tras ingresar, vuelve a la página pedida si el rol tiene permiso | A | ✅ |
+| RF-03 | Un invitado (sin sesión) puede ver la tienda y armar su carrito; para comprar se registra o inicia sesión y vuelve al checkout. Las vistas de Cliente y del Panel redirigen al inicio de sesión y, tras ingresar, vuelven a la página pedida si el rol tiene permiso | A | ✅ |
 | RF-04 | Cada rol solo accede a sus vistas; si entra por URL a una vista no permitida ve "Acceso denegado" | A | ✅ |
 | RF-05 | El Administrador crea, edita, activa/desactiva usuarios y asigna roles; no puede desactivarse ni cambiar su propio rol | A | ✅ |
 | RF-06 | No se permiten dos usuarios con el mismo correo o RUT | A | ✅ |
@@ -130,7 +132,7 @@ Prioridad: **A** = esencial, **M** = importante, **B** = deseable. Estado EP2: �
 ### 3.5 Contacto y ubicación
 | ID | Requisito | Prioridad | Estado EP2 |
 |---|---|---|---|
-| RF-21 | Formulario de contacto validado (nombre, correo, teléfono opcional, asunto, mensaje) | M | ✅ (envío real en EP3) |
+| RF-21 | Formulario de contacto validado (nombre, correo, teléfono opcional, asunto, mensaje) | M | ✅ Guardado en MySQL vía microservicio `ms-contactos` (Spring Boot + Flyway); el panel permite verlos, marcarlos como atendidos y eliminarlos |
 | RF-22 | Mapa interactivo con la tienda y los puntos de retiro, dirección, horario y enlace "Cómo llegar" | A | ✅ |
 
 ---
@@ -140,11 +142,11 @@ Prioridad: **A** = esencial, **M** = importante, **B** = deseable. Estado EP2: �
 |---|---|---|---|
 | RNF-01 | Usabilidad | Interfaz en español, mensajes de error junto a cada campo y confirmaciones visibles | Componentes `CampoFormulario` + `MensajeError`, `Alerta` |
 | RNF-02 | Responsividad | Funciona en 360 px, 768 px y 1280 px; menú hamburguesa en móvil; tablas y formularios adaptables | Bootstrap 5 (grilla, `navbar-expand-lg`, `table-responsive`); verificado en los 3 tamaños |
-| RNF-03 | Seguridad | Sin sesión no se ve ninguna vista; control por rol; la sesión guardada se valida contra los usuarios registrados | `RutaProtegida`, `SesionProveedor`; en EP3 JWT + BCrypt |
+| RNF-03 | Seguridad | El invitado solo ve información pública; pedidos, clientes y panel exigen sesión; control por rol; la sesión guardada se valida contra los usuarios registrados | `RutaProtegida`, `SesionProveedor`; en EP3 JWT + BCrypt |
 | RNF-04 | Privacidad | Un cliente nunca ve pedidos de otros; las contraseñas nunca se muestran ni se devuelven a la interfaz | `obtenerPorCliente`, `sinClave` |
 | RNF-05 | Integridad | El stock nunca queda negativo ni se vende más de lo disponible | `descontarStock` (todo o nada) y límites en el carrito |
 | RNF-06 | Mantenibilidad | Código en TypeScript, componentes atómicos reutilizables y servicios separados de la interfaz | Estructura `atomos/moleculas/organismos/paginas/servicios` |
-| RNF-07 | Calidad | Pruebas unitarias con Jasmine y Karma, con cobertura mínima del 80 % (sentencias, funciones, líneas) | 144 pruebas, ~95 % de cobertura (ver documento de cobertura) |
+| RNF-07 | Calidad | Pruebas unitarias con Jasmine y Karma, con cobertura mínima del 80 % (sentencias, funciones, líneas) | 180 pruebas, ~96 % de cobertura (ver documento de cobertura) |
 | RNF-08 | Accesibilidad | Etiquetas asociadas a campos, textos alternativos en imágenes, navegación con teclado | `label htmlFor`, `alt`, `aria-*` |
 | RNF-09 | Rendimiento | El catálogo carga y filtra sin recargar la página | SPA con React |
 
@@ -188,6 +190,6 @@ En la EP2, `src/servicios/productosServicio.ts`, `usuariosServicio.ts` y `pedido
 | Datos confidenciales | RF-03, RF-04, RF-07, RNF-03, RNF-04 |
 
 ## 7. Criterios de aceptación (EP2)
-- Las 144 pruebas unitarias pasan con `npm test` y la cobertura supera los umbrales configurados.
+- Las 180 pruebas unitarias pasan con `npm test` y la cobertura supera los umbrales configurados.
 - Cada vista funciona en 360, 768 y 1280 px sin desplazamiento horizontal de la página.
 - Con los usuarios de prueba se puede demostrar: compra completa como Cliente, gestión de pedidos y stock como Vendedor, y gestión de usuarios y productos como Administrador.

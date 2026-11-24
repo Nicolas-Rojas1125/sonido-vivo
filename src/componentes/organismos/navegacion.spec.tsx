@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { imagenesCarrusel } from "../../datos/inicio";
-import { iniciarSesionComo, prepararCarrito, reiniciarDatos, renderizarConProveedores } from "../../test/utilidades";
+import { backend, esperarBackend, iniciarSesionComo, prepararCarrito, reiniciarDatos, renderizarConProveedores } from "../../test/utilidades";
 import Carrusel from "./Carrusel";
 import Navbar from "./Navbar";
 import ResumenCompra from "./ResumenCompra";
@@ -10,8 +10,9 @@ import RutaProtegida from "./RutaProtegida";
 describe("Organismo Navbar", () => {
     beforeEach(() => reiniciarDatos());
 
-    it("abre y cierra el menú hamburguesa (estado 'abierto')", () => {
+    it("abre y cierra el menú hamburguesa (estado 'abierto')", async () => {
         renderizarConProveedores(<Navbar />);
+        await esperarBackend();
         const boton = screen.getByRole("button", { name: "Abrir menú de navegación" });
         const menu = document.getElementById("menuPrincipal")!;
         expect(menu.classList).not.toContain("show");
@@ -20,39 +21,49 @@ describe("Organismo Navbar", () => {
         expect(boton.getAttribute("aria-expanded")).toBe("true");
     });
 
-    it("muestra la cantidad de productos del carrito", () => {
+    it("muestra la cantidad de productos del carrito", async () => {
         iniciarSesionComo("cliente");
         prepararCarrito([{ codigo: "AC004", nombre: "Púas", marca: "Fender", precio: 3990, imagen: "", cantidad: 3, stock: 50 }]);
         renderizarConProveedores(<Navbar />);
+        await esperarBackend();
         expect(screen.getByRole("link", { name: "Carrito de compras, 3 productos" })).toBeTruthy();
     });
 
-    it("sin sesión muestra 'Iniciar sesión' y no muestra el Panel", () => {
+    it("como invitado muestra la tienda, el carrito, 'Iniciar sesión' y 'Crear cuenta', pero no el Panel ni Mis pedidos", async () => {
         renderizarConProveedores(<Navbar />);
+        await esperarBackend();
+        expect(screen.getByText("Hola, invitado")).toBeTruthy();
+        expect(screen.getByRole("link", { name: "Catálogo" })).toBeTruthy();
+        expect(screen.getByRole("link", { name: /Carrito de compras/ })).toBeTruthy();
         expect(screen.getByRole("link", { name: "Iniciar sesión" })).toBeTruthy();
+        expect(screen.getByRole("link", { name: "Crear cuenta" })).toBeTruthy();
         expect(screen.queryByRole("link", { name: "Panel" })).toBeNull();
-        expect(screen.queryByRole("link", { name: "Catálogo" })).toBeNull();
+        expect(screen.queryByRole("link", { name: "Mis pedidos" })).toBeNull();
     });
 
-    it("el administrador ve 'Panel' y el cliente ve 'Mis pedidos'", () => {
+    it("el administrador ve 'Panel' y el cliente ve 'Mis pedidos'", async () => {
         iniciarSesionComo("administrador");
         const { unmount } = renderizarConProveedores(<Navbar />);
+        await esperarBackend();
         expect(screen.getByRole("link", { name: "Panel" })).toBeTruthy();
         expect(screen.queryByRole("link", { name: "Mis pedidos" })).toBeNull();
         unmount();
 
         iniciarSesionComo("cliente");
         renderizarConProveedores(<Navbar />);
+        await esperarBackend();
         expect(screen.getByRole("link", { name: "Mis pedidos" })).toBeTruthy();
         expect(screen.getByText("Hola, Cliente")).toBeTruthy();
     });
 
-    it("'Cerrar sesión' borra la sesión", () => {
+    it("'Cerrar sesión' borra la sesión y revoca el refresh token en el servidor", async () => {
         iniciarSesionComo("cliente");
         renderizarConProveedores(<Navbar />);
+        await esperarBackend();
         fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+        await esperarBackend();
         expect(screen.getByRole("link", { name: "Iniciar sesión" })).toBeTruthy();
-        expect(window.localStorage.getItem("sv_sesion")).toBeNull();
+        expect(backend().cookieRefresh).toBeNull();
     });
 });
 
@@ -68,27 +79,31 @@ describe("Organismo RutaProtegida", () => {
             "/secreto"
         );
 
-    it("sin sesión redirige al login", () => {
+    it("mientras verifica la sesión muestra 'Verificando sesión...' y sin sesión redirige al login", async () => {
         renderizar();
+        expect(screen.getByText("Verificando sesión...")).toBeTruthy();
+        await esperarBackend();
         expect(screen.getByText("Página de login")).toBeTruthy();
         expect(screen.queryByText("Contenido privado")).toBeNull();
     });
 
-    it("con un rol sin permiso muestra 'Acceso denegado'", () => {
+    it("con un rol sin permiso muestra 'Acceso denegado'", async () => {
         iniciarSesionComo("cliente");
         renderizar();
+        await esperarBackend();
         expect(screen.getByText("Acceso denegado")).toBeTruthy();
     });
 
-    it("con el rol correcto muestra el contenido", () => {
+    it("con el rol correcto muestra el contenido", async () => {
         iniciarSesionComo("administrador");
         renderizar();
+        await esperarBackend();
         expect(screen.getByText("Contenido privado")).toBeTruthy();
     });
 });
 
 describe("Organismo Carrusel", () => {
-    it("avanza, retrocede (circular) y salta con los indicadores", () => {
+    it("avanza, retrocede (circular) y salta con los indicadores", async () => {
         render(
             <MemoryRouter>
                 <Carrusel imagenes={imagenesCarrusel} />
@@ -105,7 +120,7 @@ describe("Organismo Carrusel", () => {
         expect(titulo()).toBe(imagenesCarrusel[0].titulo);
     });
 
-    it("avanza solo cada 5 segundos y se pausa con el mouse encima (mock del reloj)", () => {
+    it("avanza solo cada 5 segundos y se pausa con el mouse encima (mock del reloj)", async () => {
         jasmine.clock().install();
         try {
             const { container } = render(
@@ -129,14 +144,14 @@ describe("Organismo Carrusel", () => {
         }
     });
 
-    it("no muestra nada si no hay imágenes", () => {
+    it("no muestra nada si no hay imágenes", async () => {
         const { container } = render(<Carrusel imagenes={[]} />);
         expect(container.innerHTML).toBe("");
     });
 });
 
 describe("Organismo ResumenCompra", () => {
-    it("calcula el total sumando el envío y muestra 'Gratis' si el envío es 0", () => {
+    it("calcula el total sumando el envío y muestra 'Gratis' si el envío es 0", async () => {
         const { rerender } = render(<ResumenCompra unidades={2} subtotal={100000} costoEnvio={5990} />);
         expect(screen.getByTestId("total").textContent).toBe("$105.990");
         rerender(<ResumenCompra unidades={2} subtotal={100000} costoEnvio={0} />);

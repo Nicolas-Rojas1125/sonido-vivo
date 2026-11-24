@@ -1,104 +1,63 @@
-import { productosIniciales } from "../datos/productos";
+// Servicio de productos: se comunica con ms-tienda (/api/productos).
+// Todas las peticiones llevan el token (el catálogo exige sesión iniciada).
 import type { Producto } from "../tipos/Producto";
-import { almacenamiento, CLAVES } from "./almacenamiento";
+import { api, ErrorApi, mensajeDeError, URL_TIENDA } from "./api";
 
 export interface ResultadoOperacion {
     ok: boolean;
     mensaje: string;
 }
 
-function copiarIniciales(): Producto[] {
-    return productosIniciales.map((producto) => ({ ...producto }));
+const URL = URL_TIENDA + "/productos";
+
+// Convierte una operación (crear, editar, eliminar...) en { ok, mensaje } para mostrar en una Alerta
+async function operacion(accion: () => Promise<unknown>, mensajeOk: string): Promise<ResultadoOperacion> {
+    try {
+        await accion();
+        return { ok: true, mensaje: mensajeOk };
+    } catch (error) {
+        return { ok: false, mensaje: mensajeDeError(error) };
+    }
 }
 
-let productos: Producto[] = almacenamiento.leer<Producto[]>(CLAVES.productos, copiarIniciales());
-
-function persistir(): void {
-    almacenamiento.guardar(CLAVES.productos, productos);
-}
-
-// Servicio de productos (simula el futuro microservicio /api/productos).
-// Siempre devuelve COPIAS para que ningún componente modifique los datos por accidente.
 export const productosServicio = {
-    obtenerTodos(): Producto[] {
-        return productos.map((producto) => ({ ...producto }));
+    // GET /api/productos
+    listar(): Promise<Producto[]> {
+        return api.get<Producto[]>(URL);
     },
 
-    obtenerPorCodigo(codigo: string): Producto | undefined {
-        const encontrado = productos.find((producto) => producto.codigo === codigo);
-        return encontrado ? { ...encontrado } : undefined;
-    },
-
-    existeCodigo(codigo: string): boolean {
-        return productos.some((producto) => producto.codigo === codigo);
-    },
-
-    crear(producto: Producto): ResultadoOperacion {
-        if (this.existeCodigo(producto.codigo)) {
-            return { ok: false, mensaje: "Ya existe un producto con el código " + producto.codigo + "." };
+    // GET /api/productos/{codigo}. Devuelve null si no existe (404).
+    async obtener(codigo: string): Promise<Producto | null> {
+        try {
+            return await api.get<Producto>(URL + "/" + encodeURIComponent(codigo));
+        } catch (error) {
+            if (error instanceof ErrorApi && error.estado === 404) {
+                return null;
+            }
+            throw error;
         }
-        productos = [...productos, { ...producto }];
-        persistir();
-        return { ok: true, mensaje: "Producto " + producto.codigo + " creado correctamente." };
     },
 
-    actualizar(codigo: string, datos: Producto): ResultadoOperacion {
-        if (!this.existeCodigo(codigo)) {
-            return { ok: false, mensaje: "El producto no existe." };
-        }
-        // El código no se cambia al editar (es el identificador)
-        productos = productos.map((producto) => (producto.codigo === codigo ? { ...datos, codigo } : producto));
-        persistir();
-        return { ok: true, mensaje: "Producto " + codigo + " actualizado correctamente." };
+    // POST /api/productos (solo Administrador)
+    crear(producto: Producto): Promise<ResultadoOperacion> {
+        return operacion(() => api.post(URL, producto), "Producto " + producto.codigo + " creado correctamente.");
     },
 
-    eliminar(codigo: string): ResultadoOperacion {
-        if (!this.existeCodigo(codigo)) {
-            return { ok: false, mensaje: "El producto no existe." };
-        }
-        productos = productos.filter((producto) => producto.codigo !== codigo);
-        persistir();
-        return { ok: true, mensaje: "Producto " + codigo + " eliminado." };
+    // PUT /api/productos/{codigo} (solo Administrador). El código no se cambia.
+    actualizar(codigo: string, producto: Producto): Promise<ResultadoOperacion> {
+        return operacion(() => api.put(URL + "/" + codigo, { ...producto, codigo }), "Producto " + codigo + " actualizado correctamente.");
     },
 
-    actualizarStock(codigo: string, stock: number): ResultadoOperacion {
+    // DELETE /api/productos/{codigo} (solo Administrador)
+    eliminar(codigo: string): Promise<ResultadoOperacion> {
+        return operacion(() => api.delete(URL + "/" + codigo), "Producto " + codigo + " eliminado.");
+    },
+
+    // PATCH /api/productos/{codigo}/stock (Administrador y Vendedor)
+    actualizarStock(codigo: string, stock: number): Promise<ResultadoOperacion> {
         if (!Number.isInteger(stock) || stock < 0) {
-            return { ok: false, mensaje: "El stock debe ser un número entero mayor o igual a 0." };
+            return Promise.resolve({ ok: false, mensaje: "El stock debe ser un número entero mayor o igual a 0." });
         }
-        if (!this.existeCodigo(codigo)) {
-            return { ok: false, mensaje: "El producto no existe." };
-        }
-        productos = productos.map((producto) => (producto.codigo === codigo ? { ...producto, stock } : producto));
-        persistir();
-        return { ok: true, mensaje: "Stock de " + codigo + " actualizado a " + stock + "." };
-    },
-
-    // Descuenta el stock al confirmar un pedido. Primero revisa TODOS los productos:
-    // si alguno no alcanza, no descuenta nada (evita vender lo que no hay).
-    descontarStock(items: { codigo: string; cantidad: number }[]): ResultadoOperacion {
-        for (const item of items) {
-            const producto = productos.find((p) => p.codigo === item.codigo);
-            if (!producto) {
-                return { ok: false, mensaje: "El producto " + item.codigo + " ya no existe en el catálogo." };
-            }
-            if (producto.stock < item.cantidad) {
-                return {
-                    ok: false,
-                    mensaje: "Stock insuficiente para " + producto.nombre + ". Disponible: " + producto.stock + ".",
-                };
-            }
-        }
-
-        productos = productos.map((producto) => {
-            const item = items.find((i) => i.codigo === producto.codigo);
-            return item ? { ...producto, stock: producto.stock - item.cantidad } : producto;
-        });
-        persistir();
-        return { ok: true, mensaje: "Stock actualizado." };
-    },
-
-    reiniciar(): void {
-        productos = copiarIniciales();
-        persistir();
+        return operacion(() => api.patch(URL + "/" + codigo + "/stock", { stock }), "Stock de " + codigo + " actualizado a " + stock + ".");
     },
 };

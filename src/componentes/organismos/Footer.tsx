@@ -1,11 +1,7 @@
 import { Link } from "react-router-dom";
-import { useSesion } from "../../contexto/useSesion";
-import { CATALOGO_PUBLICO, proyecto, tienda } from "../../datos/tienda";
+import { proyecto, tienda } from "../../datos/tienda";
 
 function Footer() {
-    const { usuario } = useSesion();
-    const mostrarEnlaces = usuario !== null || CATALOGO_PUBLICO;
-
     return (
         <footer className="pie-pagina mt-5">
             <div className="container py-4">
@@ -26,17 +22,15 @@ function Footer() {
                             <li>{tienda.horario}</li>
                         </ul>
                     </div>
-                    {mostrarEnlaces && (
-                        <div className="col-6 col-md-4">
-                            <h2 className="h6">Enlaces</h2>
-                            <ul className="list-unstyled small mb-0">
-                                <li><Link to="/productos">Catálogo</Link></li>
-                                <li><Link to="/carrito">Carrito</Link></li>
-                                <li><Link to="/nosotros">Nosotros</Link></li>
-                                <li><Link to="/contacto">Contacto y ubicación</Link></li>
-                            </ul>
-                        </div>
-                    )}
+                    <div className="col-6 col-md-4">
+                        <h2 className="h6">Enlaces</h2>
+                        <ul className="list-unstyled small mb-0">
+                            <li><Link to="/productos">Catálogo</Link></li>
+                            <li><Link to="/carrito">Carrito</Link></li>
+                            <li><Link to="/nosotros">Nosotros</Link></li>
+                            <li><Link to="/contacto">Contacto y ubicación</Link></li>
+                        </ul>
+                    </div>
                 </div>
                 <hr />
                 <div className="d-flex flex-column flex-md-row justify-content-between small gap-2">

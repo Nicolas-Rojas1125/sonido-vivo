@@ -9,34 +9,37 @@ import {
     cambiarCantidad,
     contarUnidades,
     quitarDelCarrito,
+    sincronizarConCatalogo,
 } from "../utilidades/carrito";
 import { CarritoContexto } from "./CarritoContexto";
 import type { ValorCarrito } from "./CarritoContexto";
+import { useSesion } from "./useSesion";
 
 type Props = {
     children: ReactNode;
 };
 
 function CarritoProveedor({ children }: Props) {
-    // Al cargar, el carrito guardado se sincroniza con el catálogo actual:
-    // se actualizan precio y stock, y se quitan productos eliminados o agotados.
-    const [items, setItems] = useState<ItemCarrito[]>(() =>
-        almacenamiento.leer<ItemCarrito[]>(CLAVES.carrito, []).flatMap((item) => {
-            const producto = productosServicio.obtenerPorCodigo(item.codigo);
-            if (!producto || producto.stock <= 0) {
-                return [];
-            }
-            return [
-                {
-                    ...item,
-                    nombre: producto.nombre,
-                    precio: producto.precio,
-                    stock: producto.stock,
-                    cantidad: Math.min(item.cantidad, producto.stock),
-                },
-            ];
-        })
-    );
+    // El carrito se guarda en el navegador (no es información sensible) para no perderlo al recargar
+    const [items, setItems] = useState<ItemCarrito[]>(() => almacenamiento.leer<ItemCarrito[]>(CLAVES.carrito, []));
+    const idUsuario = useSesion().usuario?.id;
+
+    // Se sincroniza con el catálogo del backend (precios y stock actuales) al abrir la página
+    // y cada vez que cambia el usuario. El catálogo es público, así que funciona también para el invitado.
+    useEffect(() => {
+        let vigente = true;
+        productosServicio
+            .listar()
+            .then((catalogo) => {
+                if (vigente) setItems((actuales) => sincronizarConCatalogo(actuales, catalogo));
+            })
+            .catch(() => {
+                // Sin conexión: se mantiene el carrito tal como estaba
+            });
+        return () => {
+            vigente = false;
+        };
+    }, [idUsuario]);
 
     // Cada vez que cambia el carrito, se guarda en el navegador (no se pierde al recargar)
     useEffect(() => {

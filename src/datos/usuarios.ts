@@ -1,7 +1,9 @@
 import type { Usuario } from "../tipos/Usuario";
 
-// Usuarios de prueba (uno por cada rol del caso).
-// Úsalos para iniciar sesión durante la presentación.
+// Usuarios de prueba (uno por cada rol del caso). Se muestran en la página de login.
+// Los usuarios REALES están en MySQL: ms-usuarios los crea con la migración Flyway
+// V3__insertar_usuarios_prueba.sql (contraseñas encriptadas con BCrypt).
+// Esta lista también la usa el backend falso de las pruebas (src/test/backendFalso.ts).
 export const usuariosIniciales: Usuario[] = [
     {
         id: 1,

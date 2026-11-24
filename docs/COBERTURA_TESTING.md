@@ -19,7 +19,7 @@ Validar el alcance de las pruebas unitarias del frontend React: qué componentes
 | Renderizado de componentes | React Testing Library (`render`, `screen`, `fireEvent`, `within`, `renderHook`, `act`) |
 | Cobertura | `babel-plugin-istanbul` (instrumenta) + `karma-coverage` (reporta) |
 | Punto de entrada | `src/test/indice-pruebas.ts` (carga todos los `*.spec.ts(x)`) |
-| Ayudas | `src/test/utilidades.tsx` (`reiniciarDatos`, `iniciarSesionComo`, `prepararCarrito`, `renderizarApp`, `escribir`) |
+| Ayudas | `src/test/utilidades.tsx` (`reiniciarDatos`, `iniciarSesionComo`, `prepararCarrito`, `renderizarApp`, `escribir`, `respuestaJson`) |
 
 Comando: `npm test`. Reportes generados: consola (spec + resumen), `coverage/index.html`, `coverage/cobertura.txt` y `coverage/lcov.info`.
 
@@ -27,31 +27,29 @@ Comando: `npm test`. Reportes generados: consola (spec + resumen), `coverage/ind
 
 ## 3. Resultado general
 
-**144 pruebas ejecutadas – 144 exitosas – 0 fallidas.**
+**180 pruebas ejecutadas – 180 exitosas – 0 fallidas.** Desde la EP3 las pruebas usan un **backend falso** (`src/test/backendFalso.ts`) que simula los 3 microservicios (tokens, 401/403, stock 409), así no necesitan Laragon ni Spring Boot encendidos. El backend tiene además 24 pruebas de integración propias (JUnit + MockMvc, ver `docs/DOCUMENTO_INTEGRACION.md`).
 
 | Métrica | Cobertura | Detalle |
 |---|---|---|
-| Sentencias | **95,55 %** | 817 / 855 |
-| Ramas | **90,54 %** | 517 / 571 |
-| Funciones | **94,51 %** | 293 / 310 |
-| Líneas | **95,14 %** | 744 / 782 |
+| Sentencias | **96,26 %** | 979 / 1017 |
+| Ramas | **91,9 %** | 602 / 655 |
+| Funciones | **94,79 %** | 346 / 365 |
+| Líneas | **96,06 %** | 903 / 940 |
 
 ### Cobertura por carpeta
 
 | Carpeta | Sentencias | Ramas | Funciones | Líneas |
 |---|---|---|---|---|
-| `src` (App) | 100 % | 50 % * | 100 % | 100 % |
+| `src` (App) | 100 % | 100 % | 100 % | 100 % |
 | `componentes/atomos` | 100 % | 95,45 % | 100 % | 100 % |
-| `componentes/moleculas` | 100 % | 93,75 % | 100 % | 100 % |
-| `componentes/organismos` | 97,97 % | 97,32 % | 98,18 % | 97,82 % |
-| `contexto` | 98 % | 96,42 % | 100 % | 97,87 % |
-| `datos` | 100 % | 100 % | 100 % | 100 % |
-| `paginas` | 91,66 % | 81,08 % | 79,06 % | 91,53 % |
-| `paginas/admin` | 89,89 % | 80,32 % | 80 % | 88,88 % |
-| `servicios` | 95,59 % | 83,07 % | 100 % | 94,57 % |
-| `utilidades` | 96,34 % | 94,44 % | 100 % | 96,02 % |
-
-\* En `App.tsx` la única rama sin cubrir es la opción `CATALOGO_PUBLICO = true`: el proyecto aplica la regla de seguridad del caso (todo requiere sesión), así que esa rama no se ejecuta.
+| `componentes/moleculas` | 100 % | 93,84 % | 100 % | 100 % |
+| `componentes/organismos` | 96,49 % | 97,56 % | 95,38 % | 96,2 % |
+| `contexto` | 98,55 % | 96,29 % | 100 % | 100 % |
+| `datos` | 100 % | 92,3 % | 100 % | 100 % |
+| `paginas` | 93,52 % | 89,01 % | 82,69 % | 93,25 % |
+| `paginas/admin` | 92,12 % | 84 % | 87,27 % | 91,39 % |
+| `servicios` | 99,37 % | 85,48 % | 100 % | 99,31 % |
+| `utilidades` | 96,47 % | 94,61 % | 100 % | 96,15 % |
 
 > El detalle archivo por archivo (con las líneas no cubiertas marcadas en rojo) está en `coverage/index.html`. Pegar aquí una captura de ese reporte.
 
@@ -62,16 +60,18 @@ Comando: `npm test`. Reportes generados: consola (spec + resumen), `coverage/ind
 | `utilidades/validaciones.spec.ts` | 16 | RUT chileno (válido, inválido, dígito K y 0, formato), formularios de contacto, login, usuario (contraseña segura, confirmación, edición sin clave, rol), producto (código, precio, stock) y checkout (despacho vs. retiro, medio de pago) |
 | `utilidades/carrito.spec.ts` | 7 | Agregar, sumar cantidades, límite de stock, productos agotados, inmutabilidad, cambiar cantidad, quitar, subtotal y unidades |
 | `utilidades/formato-filtros-stock.spec.ts` | 8 | Formato de precio CLP, fecha y número de pedido; enlace "Cómo llegar"; filtros por categoría y texto; ordenamiento; estado de stock |
-| `servicios/servicios.spec.ts` | 17 | Almacenamiento (lectura/escritura y fallas de localStorage), CRUD de productos, descuento de stock "todo o nada", autenticación, usuarios desactivados, duplicados de correo/RUT, creación de pedidos, pedidos por cliente, cambio de estado y resumen de ventas |
+| `servicios/servicios.spec.ts` | 23 | Almacenamiento; cliente HTTP (header Bearer, catálogo y contacto públicos para el invitado, 401 en recursos privados, servidor apagado, mensajes del backend); autenticación JWT (login, cuenta desactivada, **una sola renovación simultánea**, logout sin conexión); productos, pedidos (precio del servidor, stock 409 "todo o nada", permisos 403) y usuarios contra el backend falso |
 | `componentes/atomos/atomos.spec.tsx` | 11 | Boton (clases, clic, deshabilitado, aria-pressed), Input, Selector, ImagenProducto (imagen de respaldo al fallar), Alerta, Insignia y MensajeError |
 | `componentes/moleculas/moleculas.spec.tsx` | 12 | CampoFormulario (label, error, ayuda), SelectorCantidad (límites), CardProducto (datos, agregar, agotado), FiltroCategorias, SeguimientoPedido, FilaInventario, FilaPedido y FilaUsuario |
-| `componentes/organismos/formularios.spec.tsx` | 12 | Formularios de contacto, login, usuario (registro/admin/edición), producto (alta, errores, edición) y checkout (cambio de entrega, retiro) |
-| `componentes/organismos/navegacion.spec.tsx` | 11 | Navbar (menú hamburguesa, contador del carrito, enlaces por rol, cerrar sesión), RutaProtegida (redirige, deniega, permite), Carrusel y ResumenCompra |
-| `contexto/contexto.spec.tsx` | 11 | Contexto del carrito (agregar, sincronizar con el catálogo al cargar, cambiar, quitar, vaciar, persistencia, error fuera del proveedor) y de sesión (login, mock del servicio, registro como cliente, cierre de sesión, **sesión manipulada en localStorage**, cuenta desactivada) |
+| `componentes/organismos/formularios.spec.tsx` | 14 | Formularios de contacto (incluye envío asíncrono: botón "Enviando...", sin doble envío y sin borrar los datos si falla), login, usuario (registro/admin/edición), producto (alta, errores, edición) y checkout (cambio de entrega, retiro) |
+| `componentes/organismos/navegacion.spec.tsx` | 12 | Navbar (menú hamburguesa, contador del carrito, enlaces por rol, cerrar sesión), RutaProtegida (redirige, deniega, permite), Carrusel y ResumenCompra |
+| `contexto/contexto.spec.tsx` | 15 | Contexto del carrito (agregar, sincronizar con el catálogo al cargar, cambiar, quitar, vaciar, persistencia, error fuera del proveedor) y de sesión JWT (token solo en memoria, mock del servicio, registro, logout que revoca en el servidor, **recuperar la sesión al recargar**, rol manipulado en el navegador, cuenta desactivada, **renovación automática del token expirado**, aviso de sesión expirada y reintento como invitado en rutas públicas) |
 | `datos/usuarios.spec.ts` | 3 | Reglas de acceso por rol y página de destino después del login |
-| `paginas/paginas.spec.tsx` | 25 | **Regla de seguridad** (sin sesión todo redirige al login, registro público, retorno a la página pedida), inicio, catálogo (URL, filtros, búsqueda, servicio simulado), detalle, carrito (cliente y vendedor), **flujo completo de compra**, error de stock, mis pedidos, login, registro, contacto con mapa, nosotros y 404 |
-| `paginas/admin/admin.spec.tsx` | 11 | Permisos del vendedor, resumen de ventas y restablecer datos, gestión de pedidos, inventario, CRUD de productos, gestión de usuarios/roles y bloqueo de cambio del propio rol |
-| **Total** | **144** | |
+| `paginas/paginas.spec.tsx` | 30 | **Acceso como invitado** (tienda y carrito sin cuenta, vistas privadas siguen pidiendo sesión, "Seguir como invitado", retorno a la página pedida), **invitado → crear cuenta → checkout con el mismo carrito**, inicio, catálogo (URL, filtros, búsqueda, servicio simulado), detalle, carrito (cliente y vendedor), **flujo completo de compra**, error de stock, mis pedidos, login, registro, contacto con mapa (envío POST al backend simulado y error si el servidor está apagado), nosotros y 404 |
+| `paginas/admin/admin.spec.tsx` | 13 | Permisos del vendedor, resumen de ventas y restablecer datos, gestión de pedidos, inventario, CRUD de productos, gestión de usuarios/roles y bloqueo de cambio del propio rol |
+| `servicios/contactosServicio.spec.ts` | 7 | Peticiones a la API REST del microservicio: POST (URL, método y JSON con los nombres de la entidad), GET, PUT `/{id}/atendido`, DELETE con respuesta 204, y errores 400/404 |
+| `paginas/admin/contactos.spec.tsx` | 9 | Panel → Contactos: menú para el vendedor, listado desde el backend y contador de pendientes, filtro por estado, marcar atendido (PUT), eliminar con confirmación (DELETE), servidor apagado + reintentar, y error en una acción |
+| **Total** | **180** | |
 
 ## 5. Uso de mocks y espías
 
@@ -82,7 +82,11 @@ Comando: `npm test`. Reportes generados: consola (spec + resumen), `coverage/ind
 | `spyOn(...).and.callThrough()` | Inventario, carrito, productos | Espiar la llamada sin cambiar el comportamiento (verificar que se guardó en el almacenamiento o que se llamó a `actualizarStock`) |
 | `spyOn(Storage.prototype, "getItem").and.throwError(...)` | Almacenamiento | Simular un navegador que bloquea localStorage |
 | `jasmine.clock().mockDate(...)` | Pedidos | Fijar la fecha para comprobar la fecha del pedido |
-| `spyOn(console, "error")` | Contexto | Silenciar el error esperado al usar un hook fuera de su proveedor |
+| `spyOn(window, "fetch").and.resolveTo(respuestaJson(...))` | Contacto, panel Contactos, servicio de contactos | Simular las respuestas de Spring Boot (201, 200, 204, 400, 404, 500) sin necesitar el backend encendido |
+| `spyOn(window, "fetch").and.callFake(...)` | Panel Contactos | "Backend falso" que responde según el método HTTP y la URL, para probar el ciclo completo listar → actualizar → recargar |
+| `spyOn(window, "fetch").and.rejectWith(...)` | Contacto, panel Contactos | Simular que el microservicio está apagado (error de red) |
+| `spyOn(window, "confirm").and.returnValues(false, true)` | Panel Contactos | Simular que el usuario cancela y luego acepta la eliminación |
+| `spyOn(console, "error")` | Contexto, Contacto | Silenciar el error esperado al usar un hook fuera de su proveedor |
 
 ## 6. Análisis de resultados
 
@@ -96,4 +100,4 @@ Comando: `npm test`. Reportes generados: consola (spec + resumen), `coverage/ind
 
 - `main.tsx` (solo monta la app) se excluye de la medición.
 - Las imágenes del mapa (teselas de OpenStreetMap) dependen de internet; se verifica que el mapa se crea y que existen los enlaces "Cómo llegar", no el contenido de las teselas.
-- Backend, API REST y base de datos corresponden a la Evaluación Parcial 3.
+- El microservicio Spring Boot (`backend/ms-contactos`) no se prueba con Karma: las pruebas del frontend simulan sus respuestas. El backend se prueba con Postman (colección en `backend/ms-contactos/postman/`).

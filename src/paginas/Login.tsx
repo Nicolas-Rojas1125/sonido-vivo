@@ -4,23 +4,34 @@ import { useSesion } from "../contexto/useSesion";
 import { destinoTrasLogin, etiquetasRol, usuariosIniciales } from "../datos/usuarios";
 import type { DatosLogin } from "../tipos/Usuario";
 import Alerta from "../componentes/atomos/Alerta";
+import EstadoCarga from "../componentes/moleculas/EstadoCarga";
 import FormularioLogin from "../componentes/organismos/FormularioLogin";
 
 function Login() {
-    const { usuario, iniciarSesion } = useSesion();
+    const { usuario, cargando, aviso, iniciarSesion } = useSesion();
     const navegar = useNavigate();
     const ubicacion = useLocation();
     const [error, setError] = useState("");
+    const [procesando, setProcesando] = useState(false);
 
     // Si venía desde una página protegida, vuelve a ella después del login
     const desde = (ubicacion.state as { desde?: string } | null)?.desde;
+
+    // Mientras se revisa si ya hay una sesión (al recargar), no se muestra el formulario
+    if (cargando) {
+        return <EstadoCarga cargando error="" texto="Verificando sesión..." />;
+    }
 
     if (usuario) {
         return <Navigate to={destinoTrasLogin(desde, usuario.rol)} replace />;
     }
 
-    const ingresar = (datos: DatosLogin) => {
-        const resultado = iniciarSesion(datos.correo, datos.clave);
+    // POST /api/auth/login en ms-usuarios. Si es correcto, el backend entrega el JWT con el rol.
+    const ingresar = async (datos: DatosLogin) => {
+        setProcesando(true);
+        setError("");
+        const resultado = await iniciarSesion(datos.correo, datos.clave);
+        setProcesando(false);
         if (!resultado.ok || !resultado.usuario) {
             setError(resultado.mensaje);
             return;
@@ -35,11 +46,15 @@ function Login() {
                     <div className="card">
                         <div className="card-body p-4">
                             <h1 className="h3 mb-3">Iniciar sesión</h1>
-                            {desde && <Alerta texto="Inicia sesión o crea una cuenta para continuar." tipo="info" />}
+                            {aviso && <Alerta texto={aviso} tipo="warning" />}
+                            {desde && !aviso && <Alerta texto="Inicia sesión o crea una cuenta para continuar." tipo="info" />}
                             <Alerta texto={error} tipo="danger" alCerrar={() => setError("")} />
-                            <FormularioLogin alIngresar={ingresar} />
+                            <FormularioLogin alIngresar={(datos) => void ingresar(datos)} procesando={procesando} />
                             <p className="mt-3 mb-0 small">
                                 ¿No tienes cuenta? <Link to="/registro" state={{ desde }}>Regístrate aquí</Link>
+                            </p>
+                            <p className="mt-2 mb-0 small">
+                                <Link to="/productos">Seguir como invitado</Link>
                             </p>
                         </div>
                     </div>

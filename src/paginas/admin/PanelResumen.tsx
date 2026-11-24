@@ -1,38 +1,33 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useSesion } from "../../contexto/useSesion";
 import { etiquetasEstadoPedido, ordenEstados } from "../../datos/pedidos";
 import { pedidosServicio } from "../../servicios/pedidosServicio";
 import { productosServicio } from "../../servicios/productosServicio";
-import { usuariosServicio } from "../../servicios/usuariosServicio";
+import { useCargar } from "../../servicios/useCargar";
 import { formatearPrecio } from "../../utilidades/formato";
 import { obtenerEstadoStock } from "../../utilidades/stock";
-import Alerta from "../../componentes/atomos/Alerta";
-import Boton from "../../componentes/atomos/Boton";
+import EstadoCarga from "../../componentes/moleculas/EstadoCarga";
 import TarjetaResumen from "../../componentes/moleculas/TarjetaResumen";
 
+// Resumen del panel. Pide al mismo tiempo (Promise.all) el resumen de ventas y el catálogo:
+// las dos peticiones viajan en paralelo, así la página carga más rápido.
 function PanelResumen() {
-    const { tieneRol } = useSesion();
-    const [mensaje, setMensaje] = useState("");
-    // "version" fuerza a volver a leer los datos después de restablecerlos
-    const [version, setVersion] = useState(0);
+    const consulta = useCargar(() => Promise.all([pedidosServicio.obtenerResumen(), productosServicio.listar()]));
 
-    const resumen = pedidosServicio.obtenerResumen();
-    const productos = productosServicio.obtenerTodos();
+    if (!consulta.datos) {
+        return (
+            <>
+                <h1 className="h3 mb-4">Resumen de la tienda</h1>
+                <EstadoCarga cargando={consulta.cargando} error={consulta.error} alReintentar={consulta.recargar} texto="Cargando resumen..." />
+            </>
+        );
+    }
+
+    const [resumen, productos] = consulta.datos;
     const criticos = productos.filter((p) => obtenerEstadoStock(p.stock) !== "disponible");
 
-    const restablecer = () => {
-        productosServicio.reiniciar();
-        pedidosServicio.reiniciar();
-        usuariosServicio.reiniciar();
-        setVersion(version + 1);
-        setMensaje("Se restablecieron los datos de demostración (catálogo, pedidos y usuarios).");
-    };
-
     return (
-        <div key={version}>
+        <div>
             <h1 className="h3 mb-4">Resumen de la tienda</h1>
-            <Alerta texto={mensaje} alCerrar={() => setMensaje("")} />
 
             <div className="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3 mb-4">
                 <div className="col">
@@ -42,7 +37,7 @@ function PanelResumen() {
                     <div className="col" key={estado}>
                         <TarjetaResumen
                             titulo={etiquetasEstadoPedido[estado]}
-                            valor={String(resumen.porEstado[estado])}
+                            valor={String(resumen.porEstado[estado] ?? 0)}
                             detalle="pedidos"
                             color={estado === "preparacion" ? "warning" : estado === "despachado" ? "info" : "success"}
                         />
@@ -71,18 +66,6 @@ function PanelResumen() {
                     )}
                 </div>
             </div>
-
-            {tieneRol("administrador") && (
-                <div className="card border-danger-subtle">
-                    <div className="card-body">
-                        <h2 className="h6">Datos de demostración</h2>
-                        <p className="small text-body-secondary">
-                            Los datos se guardan en el navegador (localStorage) hasta que exista el backend. Este botón vuelve al catálogo original del Excel.
-                        </p>
-                        <Boton texto="Restablecer datos" variante="outline-secondary" tamano="sm" alClick={restablecer} />
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

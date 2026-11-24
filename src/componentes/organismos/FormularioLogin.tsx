@@ -7,9 +7,10 @@ import CampoFormulario from "../moleculas/CampoFormulario";
 
 type Props = {
     alIngresar: (datos: DatosLogin) => void;
+    procesando?: boolean; // true mientras se espera la respuesta del backend
 };
 
-function FormularioLogin({ alIngresar }: Props) {
+function FormularioLogin({ alIngresar, procesando = false }: Props) {
     const [datos, setDatos] = useState<DatosLogin>({ correo: "", clave: "" });
     const [errores, setErrores] = useState<ErroresLogin>({});
 
@@ -42,7 +43,7 @@ function FormularioLogin({ alIngresar }: Props) {
                 error={errores.clave}
                 autoComplete="current-password"
             />
-            <Boton texto="Ingresar" tipo="submit" anchoCompleto />
+            <Boton texto="Ingresar" tipo="submit" anchoCompleto deshabilitado={procesando} />
         </form>
     );
 }

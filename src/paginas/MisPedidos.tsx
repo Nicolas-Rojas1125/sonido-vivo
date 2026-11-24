@@ -1,12 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
-import { useSesion } from "../contexto/useSesion";
 import { colorEstadoPedido, etiquetasEstadoPedido } from "../datos/pedidos";
 import { puntosRetiro } from "../datos/tienda";
 import { pedidosServicio } from "../servicios/pedidosServicio";
+import { useCargar } from "../servicios/useCargar";
 import type { Pedido } from "../tipos/Pedido";
 import { formatearFecha, formatearPrecio } from "../utilidades/formato";
 import Alerta from "../componentes/atomos/Alerta";
 import Insignia from "../componentes/atomos/Insignia";
+import EstadoCarga from "../componentes/moleculas/EstadoCarga";
 import SeguimientoPedido from "../componentes/moleculas/SeguimientoPedido";
 
 function textoEntrega(pedido: Pedido): string {
@@ -18,12 +19,12 @@ function textoEntrega(pedido: Pedido): string {
 }
 
 function MisPedidos() {
-    const { usuario } = useSesion();
     const ubicacion = useLocation();
     const nuevoPedido = (ubicacion.state as { nuevoPedido?: string } | null)?.nuevoPedido ?? "";
 
-    // Un cliente solo ve sus propios pedidos
-    const pedidos = usuario ? pedidosServicio.obtenerPorCliente(usuario.correo) : [];
+    // GET /api/pedidos/mios: el backend filtra por el id del token, así un cliente solo ve SUS pedidos
+    const consulta = useCargar(() => pedidosServicio.misPedidos());
+    const pedidos = consulta.datos ?? [];
 
     return (
         <section className="container py-4">
@@ -32,7 +33,8 @@ function MisPedidos() {
                 <Alerta texto={"¡Gracias por tu compra! Tu pedido " + nuevoPedido + " fue recibido y está en preparación."} />
             )}
 
-            {pedidos.length === 0 ? (
+            <EstadoCarga cargando={consulta.cargando} error={consulta.error} alReintentar={consulta.recargar} texto="Cargando tus pedidos..." />
+            {!consulta.datos ? null : pedidos.length === 0 ? (
                 <p>
                     Aún no tienes pedidos. <Link to="/productos">Revisa el catálogo</Link>.
                 </p>

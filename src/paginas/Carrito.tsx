@@ -9,8 +9,11 @@ function Carrito() {
     const { items, unidades, subtotal, cambiarCantidad, quitar, vaciar } = useCarrito();
     const navegar = useNavigate();
     const { usuario } = useSesion();
-    // Solo el rol Cliente puede hacer pedidos (sección 0.2 del caso)
-    const puedeComprar = usuario === null || usuario.rol === "cliente";
+    // Solo el rol Cliente puede hacer pedidos. El invitado arma su carrito y, para pagar,
+    // se registra o inicia sesión: después vuelve directo al checkout con el mismo carrito.
+    const esInvitado = usuario === null;
+    const puedeComprar = usuario?.rol === "cliente";
+    const alCheckout = { desde: "/checkout" };
 
     if (items.length === 0) {
         return (
@@ -45,6 +48,16 @@ function Carrito() {
                     <ResumenCompra unidades={unidades} subtotal={subtotal}>
                         {puedeComprar ? (
                             <Boton texto="Continuar con la compra" anchoCompleto tamano="lg" alClick={() => navegar("/checkout")} />
+                        ) : esInvitado ? (
+                            <>
+                                <p className="small mb-2" role="note">
+                                    Estás comprando como <strong>invitado</strong>. Para finalizar el pedido crea tu cuenta o inicia sesión: tu carrito se mantiene.
+                                </p>
+                                <Boton texto="Crear cuenta y comprar" anchoCompleto tamano="lg" alClick={() => navegar("/registro", { state: alCheckout })} />
+                                <Link className="btn btn-outline-secondary w-100 mt-2" to="/login" state={alCheckout}>
+                                    Ya tengo cuenta: iniciar sesión
+                                </Link>
+                            </>
                         ) : (
                             <p className="small text-body-secondary mb-0" role="note">
                                 Los pedidos online se hacen con una cuenta de Cliente. Tu rol permite gestionar pedidos y stock desde el Panel.

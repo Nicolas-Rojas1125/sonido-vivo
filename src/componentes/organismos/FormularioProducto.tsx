@@ -12,6 +12,7 @@ type Props = {
     productoInicial?: Producto;
     alGuardar: (producto: Producto) => void;
     alCancelar?: () => void;
+    procesando?: boolean; // true mientras se espera la respuesta del backend
 };
 
 const datosVacios: FormularioProductoDatos = {
@@ -43,7 +44,7 @@ function aFormulario(producto: Producto): FormularioProductoDatos {
     };
 }
 
-function FormularioProducto({ productoInicial, alGuardar, alCancelar }: Props) {
+function FormularioProducto({ productoInicial, alGuardar, alCancelar, procesando = false }: Props) {
     const esEdicion = productoInicial !== undefined;
     const [datos, setDatos] = useState<FormularioProductoDatos>(
         productoInicial ? aFormulario(productoInicial) : datosVacios
@@ -175,7 +176,7 @@ function FormularioProducto({ productoInicial, alGuardar, alCancelar }: Props) {
                 filas={3}
             />
             <div className="d-flex flex-wrap gap-2">
-                <Boton texto={esEdicion ? "Guardar cambios" : "Crear producto"} tipo="submit" />
+                <Boton texto={esEdicion ? "Guardar cambios" : "Crear producto"} tipo="submit" deshabilitado={procesando} />
                 {alCancelar && <Boton texto="Cancelar" variante="outline-secondary" alClick={alCancelar} />}
             </div>
         </form>

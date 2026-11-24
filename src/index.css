@@ -427,3 +427,11 @@ img {
 .pie-pagina hr {
   border-color: #4a4558;
 }
+
+/* Mensajes de contacto del panel: el texto largo se corta en varias líneas */
+.mensaje-contacto {
+    min-width: 14rem;
+    max-width: 28rem;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}

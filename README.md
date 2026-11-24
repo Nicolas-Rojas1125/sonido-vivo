@@ -2,7 +2,9 @@
 
 Proyecto de la **Evaluación Parcial 2 – DSY1104 Desarrollo Fullstack II (Duoc UC)**, caso **Forma B: Sonido Vivo**, tienda de instrumentos y equipos musicales (ubicada en el Edificio Dos Caracoles, Providencia).
 
-Aplicación SPA hecha con **React + TypeScript + Vite**, diseño responsivo con **Bootstrap 5** y **pruebas unitarias con Jasmine + Karma** (144 pruebas, ~95 % de cobertura).
+Aplicación SPA hecha con **React + TypeScript + Vite**, diseño responsivo con **Bootstrap 5** y **pruebas unitarias con Jasmine + Karma** (180 pruebas, ~96 % de cobertura).
+
+**EP3:** integrado con 3 microservicios **Spring Boot + MySQL (Flyway)** en `../backend`: `ms-usuarios` (login **JWT** con roles), `ms-tienda` (catálogo, inventario y pedidos) y `ms-contactos`. Cómo levantar todo: [`docs/GUIA_EJECUCION.md`](docs/GUIA_EJECUCION.md). Explicación técnica: [`docs/DOCUMENTO_INTEGRACION.md`](docs/DOCUMENTO_INTEGRACION.md).
 
 ---
 
@@ -25,7 +27,7 @@ Requisitos: **Node.js 20.19+ o 22.12+** (lo pide Vite 8; revisa con `node -v`) y
 ```bash
 npm install          # instala dependencias (solo la primera vez)
 npm run dev          # abre la app en http://localhost:5173
-npm test             # ejecuta las 144 pruebas en Chrome (sin ventana) y genera la cobertura
+npm test             # ejecuta las 180 pruebas (no necesitan el backend) en Chrome (sin ventana) y genera la cobertura
 npm run test:watch   # abre Chrome visible y vuelve a probar cada vez que guardas
 npm run build        # compila para producción (carpeta dist/)
 npm run lint         # revisa el código con ESLint
@@ -41,11 +43,13 @@ Después de `npm test`, abre **`coverage/index.html`** en el navegador para ver 
 | Vendedor | vendedor@sonidovivo.cl | Vende123 | Ver/actualizar pedidos y stock. No gestiona usuarios ni productos |
 | Cliente | cliente@correo.cl | Cliente123 | Catálogo, carrito, compra (despacho o retiro) y ver **solo sus** pedidos |
 
-> **Regla de seguridad del caso (sección 0.2):** ninguna vista se puede ver sin iniciar sesión, salvo **Iniciar sesión** y **Crear cuenta**. Al abrir la app sin sesión siempre llegas al login. Si tu docente permite ver la tienda sin cuenta, cambia `CATALOGO_PUBLICO` a `true` en `src/datos/tienda.ts`.
+> **Acceso como invitado:** al abrir la app entras a la tienda sin cuenta (catálogo, detalle, carrito, nosotros y contacto). Para **comprar** hay que crear una cuenta o iniciar sesión; después se vuelve directo al checkout con el mismo carrito. *Mis pedidos* y el *Panel* siguen exigiendo sesión y rol.
 >
-> La sesión guardada se valida contra los usuarios registrados: si alguien edita su rol en localStorage, se usa su rol real; si la cuenta fue desactivada, se cierra la sesión.
+> Los usuarios de prueba los crea la migración Flyway `V3__insertar_usuarios_prueba.sql` de ms-usuarios (contraseñas con BCrypt). El rol siempre viene del token JWT firmado por el servidor.
 
-> Los datos se guardan en el navegador (localStorage) mientras no exista el backend. Si cambias datos en el código y no ves el cambio, entra como administrador → **Panel → Resumen → "Restablecer datos"**.
+> **La app necesita el backend encendido** (Laragon + los 3 microservicios): los datos están en MySQL y el login entrega un token JWT. Ver [`docs/GUIA_EJECUCION.md`](docs/GUIA_EJECUCION.md). Las pruebas (`npm test`) usan un backend falso y no lo necesitan.
+>
+> Solo el **carrito** se guarda en el navegador (localStorage). El token de sesión vive en memoria y el refresh token en una cookie httpOnly.
 
 ---
 
@@ -115,7 +119,7 @@ Las pruebas (`*.spec.ts` / `*.spec.tsx`) están junto al código que prueban.
 | `/carrito` | Carrito (solo el Cliente puede continuar a la compra) | Cualquier rol con sesión |
 | `/nosotros` · `/contacto` | Nosotros · Contacto + mapa Leaflet | Cualquier rol con sesión |
 | `/checkout` · `/mis-pedidos` | Compra (despacho o retiro) · Historial y seguimiento | Cliente |
-| `/admin` (+ `pedidos`, `inventario`) | Panel: resumen de ventas, pedidos, stock | Administrador y Vendedor |
+| `/admin` (+ `pedidos`, `inventario`, `contactos`) | Panel: resumen de ventas, pedidos, stock, mensajes de contacto (desde el backend) | Administrador y Vendedor |
 | `/admin/productos` · `/admin/usuarios` | CRUD de productos · Gestión de usuarios y roles | Solo Administrador |
 
 ---
@@ -136,12 +140,13 @@ Las pruebas (`*.spec.ts` / `*.spec.tsx`) están junto al código que prueban.
 - **Responsivo con Bootstrap** (probado a 360, 768 y 1280 px): `navbar-expand-lg` con menú hamburguesa, grilla `row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4`, `table-responsive` y columnas que se ocultan en móvil (`d-none d-md-table-cell`), formularios `col-12 col-md-6`, menú del panel lateral en escritorio y horizontal en móvil.
 
 ### IE2.2.1 / IE2.2.2 – Pruebas con Jasmine y Karma
-144 pruebas en 12 archivos `.spec`, que verifican **lógica** (funciones puras y servicios), **comportamiento** (clics, envíos de formularios, navegación) y **manipulación del DOM** (clases, atributos, elementos que aparecen/desaparecen).
+180 pruebas en 14 archivos `.spec`, que verifican **lógica** (funciones puras y servicios), **comportamiento** (clics, envíos de formularios, navegación) y **manipulación del DOM** (clases, atributos, elementos que aparecen/desaparecen).
 
 ### IE2.3.1 / IE2.3.2 – Proceso de testeo
 - **Configuración del entorno**: `karma.conf.cjs` (Jasmine + Webpack/Babel para compilar TSX + Chrome Headless + cobertura) y `src/test/indice-pruebas.ts` (carga todos los `.spec`).
 - **Qué no está probado y por qué**: ver la sección 7 de `docs/COBERTURA_TESTING.md`.
 - **Escritura**: patrón *Preparar → Actuar → Verificar* con `describe`/`it`/`expect`, `beforeEach` para reiniciar datos.
+- **Mocks de la API REST**: `spyOn(window, "fetch").and.resolveTo(respuestaJson(...))` simula las respuestas de Spring Boot (201, 200, 204, 400, 404, 500 y servidor apagado), así las pruebas no necesitan el backend encendido.
 - **Mocks**: `jasmine.createSpy` (props de función), `spyOn(...).and.returnValue` (servicio simulado), `spyOn(...).and.callThrough` (espía), `spyOn(Storage.prototype, "getItem").and.throwError` (falla de localStorage) y `jasmine.clock().mockDate` (fecha fija).
 - **Análisis de resultados**: salida de Karma en consola + reporte HTML en `coverage/index.html`, con umbrales mínimos (80 % sentencias/funciones/líneas, 70 % ramas) que hacen fallar `npm test` si la cobertura baja. Detalle en `docs/COBERTURA_TESTING.md`.
 
@@ -151,6 +156,10 @@ Las pruebas (`*.spec.ts` / `*.spec.tsx`) están junto al código que prueban.
 | `docs/ERS_Sonido_Vivo.md` | Documento ERS (propuesta terminada, última versión) |
 | `docs/COBERTURA_TESTING.md` | Documento de cobertura de testing |
 | `docs/GUION_PRESENTACION.md` | Apoyo para la presentación individual (Situación evaluativa 2) |
+| `docs/GUIA_EJECUCION.md` | **EP3** – Cómo levantar MySQL, los 3 microservicios y el frontend; Swagger, Postman y problemas comunes |
+| `docs/DOCUMENTO_INTEGRACION.md` | **EP3** – Documento de integración (entregable): arquitectura, modelo de datos, endpoints, flujo de datos, JWT, sesión y restricciones |
+| `docs/MANUAL_USUARIO.md` | **EP3** – Manual de usuario (entregable). Falta agregar los pantallazos |
+| `docs/GUION_PRESENTACION_EP3.md` | **EP3** – Apoyo para la presentación individual, por indicador |
 
 ---
 
@@ -167,6 +176,12 @@ git push -u origin main
 
 `node_modules`, `dist` y `coverage` no se suben (están en `.gitignore`). Para el **proyecto comprimido**, comprime la carpeta **sin** `node_modules`.
 
-## 8. Próximos pasos (EP3)
+## 8. Backend (Spring Boot + MySQL + Flyway + JWT)
 
-Los servicios de `src/servicios/` están pensados para ser reemplazados por llamadas `fetch` a los microservicios Spring Boot (`/api/productos`, `/api/usuarios`, `/api/pedidos`), con autenticación por token y contraseñas encriptadas (BCrypt) en el backend.
+| Microservicio | Carpeta | Puerto | Base de datos | Swagger |
+|---|---|---|---|---|
+| `ms-usuarios` | `../backend/ms-usuarios` | 8081 | `sonidovivo_usuarios` | http://localhost:8081/swagger-ui.html |
+| `ms-contactos` | `../backend/ms-contactos` | 8082 | `sonidovivo_contactos` | http://localhost:8082/swagger-ui.html |
+| `ms-tienda` | `../backend/ms-tienda` | 8083 | `sonidovivo_tienda` | http://localhost:8083/swagger-ui.html |
+
+En React, `src/servicios/api.ts` es el cliente HTTP (token Bearer + renovación automática) y cada servicio (`authServicio`, `productosServicio`, `pedidosServicio`, `usuariosServicio`, `contactosServicio`) tiene una función por endpoint. Detalle en [`docs/DOCUMENTO_INTEGRACION.md`](docs/DOCUMENTO_INTEGRACION.md).

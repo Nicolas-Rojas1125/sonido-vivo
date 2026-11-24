@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { productosServicio } from "../../servicios/productosServicio";
-import type { Producto } from "../../tipos/Producto";
+import { useCargar } from "../../servicios/useCargar";
 import { filtrarProductos } from "../../utilidades/filtros";
 import { obtenerEstadoStock } from "../../utilidades/stock";
 import Alerta from "../../componentes/atomos/Alerta";
 import CampoFormulario from "../../componentes/moleculas/CampoFormulario";
+import EstadoCarga from "../../componentes/moleculas/EstadoCarga";
 import TablaInventario from "../../componentes/organismos/TablaInventario";
 
 function AdminInventario() {
-    const [productos, setProductos] = useState<Producto[]>(() => productosServicio.obtenerTodos());
+    const consulta = useCargar(() => productosServicio.listar());
+    const productos = consulta.datos ?? [];
     const [busqueda, setBusqueda] = useState("");
     const [soloCriticos, setSoloCriticos] = useState(false);
     const [mensaje, setMensaje] = useState({ texto: "", tipo: "success" as "success" | "danger" });
@@ -18,10 +20,11 @@ function AdminInventario() {
         visibles = visibles.filter((p) => obtenerEstadoStock(p.stock) !== "disponible");
     }
 
-    const guardarStock = (codigo: string, stock: number) => {
-        const resultado = productosServicio.actualizarStock(codigo, stock);
+    // PATCH /api/productos/{codigo}/stock (Administrador y Vendedor)
+    const guardarStock = async (codigo: string, stock: number) => {
+        const resultado = await productosServicio.actualizarStock(codigo, stock);
         setMensaje({ texto: resultado.mensaje, tipo: resultado.ok ? "success" : "danger" });
-        setProductos(productosServicio.obtenerTodos());
+        consulta.recargar();
     };
 
     return (
@@ -44,7 +47,10 @@ function AdminInventario() {
             <Alerta texto={mensaje.texto} tipo={mensaje.tipo} alCerrar={() => setMensaje({ ...mensaje, texto: "" })} />
             <div className="card">
                 <div className="card-body">
-                    <TablaInventario productos={visibles} alGuardarStock={guardarStock} />
+                    <EstadoCarga cargando={consulta.cargando} error={consulta.error} alReintentar={consulta.recargar} texto="Cargando inventario..." />
+                    {consulta.datos && (
+                        <TablaInventario productos={visibles} alGuardarStock={(codigo, stock) => void guardarStock(codigo, stock)} />
+                    )}
                 </div>
             </div>
         </>

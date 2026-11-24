@@ -50,3 +50,23 @@ export function calcularSubtotal(items: ItemCarrito[]): number {
 export function contarUnidades(items: ItemCarrito[]): number {
     return items.reduce((total, item) => total + item.cantidad, 0);
 }
+
+// Actualiza el carrito guardado con el catálogo actual del backend:
+// precio y stock al día, y se quitan productos eliminados o agotados.
+export function sincronizarConCatalogo(items: ItemCarrito[], catalogo: Producto[]): ItemCarrito[] {
+    return items.flatMap((item) => {
+        const producto = catalogo.find((p) => p.codigo === item.codigo);
+        if (!producto || producto.stock <= 0) {
+            return [];
+        }
+        return [
+            {
+                ...item,
+                nombre: producto.nombre,
+                precio: producto.precio,
+                stock: producto.stock,
+                cantidad: Math.min(item.cantidad, producto.stock),
+            },
+        ];
+    });
+}

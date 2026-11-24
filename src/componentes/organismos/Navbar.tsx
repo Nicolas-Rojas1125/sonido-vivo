@@ -2,10 +2,11 @@ import { startTransition, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useCarrito } from "../../contexto/useCarrito";
 import { useSesion } from "../../contexto/useSesion";
-import { CATALOGO_PUBLICO, tienda } from "../../datos/tienda";
+import { tienda } from "../../datos/tienda";
 
 type Enlace = { ruta: string; texto: string };
 
+// Visibles para todos, incluido el invitado (sin cuenta)
 const enlacesPublicos: Enlace[] = [
     { ruta: "/", texto: "Inicio" },
     { ruta: "/productos", texto: "Catálogo" },
@@ -19,11 +20,8 @@ function Navbar() {
     const { unidades } = useCarrito();
     const navegar = useNavigate();
 
-    // Sin sesión (y con la tienda privada) solo se muestran "Iniciar sesión" y "Crear cuenta"
-    const mostrarTienda = usuario !== null || CATALOGO_PUBLICO;
-
-    // Los enlaces cambian según el rol del usuario conectado
-    const enlaces: Enlace[] = mostrarTienda ? [...enlacesPublicos] : [];
+    // Los enlaces cambian según el rol del usuario conectado (el invitado ve solo los públicos)
+    const enlaces: Enlace[] = [...enlacesPublicos];
     if (tieneRol("cliente")) {
         enlaces.push({ ruta: "/mis-pedidos", texto: "Mis pedidos" });
     }
@@ -35,11 +33,11 @@ function Navbar() {
 
     const salir = () => {
         cerrar();
-        // startTransition agrupa ambos cambios en un solo render: así se va directo al login
-        // (sin pasar por la redirección de la página protegida en la que estaba)
+        // startTransition agrupa ambos cambios en un solo render: así se va directo al inicio como invitado
+        // (sin pasar por la redirección al login de la página protegida en la que estaba)
         startTransition(() => {
-            cerrarSesion();
-            navegar("/login");
+            void cerrarSesion(); // borra el token y avisa al backend (revoca el refresh token)
+            navegar("/");
         });
     };
 
@@ -54,21 +52,19 @@ function Navbar() {
                 </Link>
 
                 <div className="d-flex align-items-center gap-2 order-lg-last">
-                    {mostrarTienda && (
-                        <Link
-                            to="/carrito"
-                            className="btn btn-outline-light btn-sm position-relative boton-carrito"
-                            aria-label={"Carrito de compras, " + unidades + " productos"}
-                            onClick={cerrar}
-                        >
-                            🛒 <span className="d-none d-sm-inline">Carrito</span>
-                            {unidades > 0 && (
-                                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
-                                    {unidades}
-                                </span>
-                            )}
-                        </Link>
-                    )}
+                    <Link
+                        to="/carrito"
+                        className="btn btn-outline-light btn-sm position-relative boton-carrito"
+                        aria-label={"Carrito de compras, " + unidades + " productos"}
+                        onClick={cerrar}
+                    >
+                        🛒 <span className="d-none d-sm-inline">Carrito</span>
+                        {unidades > 0 && (
+                            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning text-dark">
+                                {unidades}
+                            </span>
+                        )}
+                    </Link>
                     <button
                         className="navbar-toggler"
                         type="button"
@@ -101,6 +97,7 @@ function Navbar() {
                             </>
                         ) : (
                             <>
+                                <span className="navbar-text small">Hola, invitado</span>
                                 <NavLink className="btn btn-sm btn-outline-light" to="/login" onClick={cerrar}>
                                     Iniciar sesión
                                 </NavLink>

@@ -1,23 +1,31 @@
 import { useState } from "react";
 import { etiquetasEstadoPedido, ordenEstados } from "../../datos/pedidos";
+import { mensajeDeError } from "../../servicios/api";
 import { pedidosServicio } from "../../servicios/pedidosServicio";
-import type { EstadoPedido, Pedido } from "../../tipos/Pedido";
+import { useCargar } from "../../servicios/useCargar";
+import type { EstadoPedido } from "../../tipos/Pedido";
 import Alerta from "../../componentes/atomos/Alerta";
 import Selector from "../../componentes/atomos/Selector";
+import EstadoCarga from "../../componentes/moleculas/EstadoCarga";
 import TablaPedidos from "../../componentes/organismos/TablaPedidos";
 
 function AdminPedidos() {
-    const [pedidos, setPedidos] = useState<Pedido[]>(() => pedidosServicio.obtenerTodos());
+    // GET /api/pedidos (Administrador y Vendedor)
+    const consulta = useCargar(() => pedidosServicio.listarTodos());
+    const pedidos = consulta.datos ?? [];
     const [filtro, setFiltro] = useState<EstadoPedido | "">("");
-    const [mensaje, setMensaje] = useState("");
+    const [mensaje, setMensaje] = useState({ texto: "", tipo: "success" as "success" | "danger" });
 
     const visibles = filtro === "" ? pedidos : pedidos.filter((pedido) => pedido.estado === filtro);
 
-    const actualizar = (id: number, estado: EstadoPedido, seguimiento: string) => {
-        const actualizado = pedidosServicio.actualizarEstado(id, estado, seguimiento);
-        if (actualizado) {
-            setPedidos(pedidosServicio.obtenerTodos());
-            setMensaje("Pedido " + actualizado.numero + " actualizado a \"" + etiquetasEstadoPedido[estado] + "\".");
+    // PUT /api/pedidos/{id}/estado
+    const actualizar = async (id: number, estado: EstadoPedido, seguimiento: string) => {
+        try {
+            const actualizado = await pedidosServicio.actualizarEstado(id, estado, seguimiento);
+            setMensaje({ texto: "Pedido " + actualizado.numero + " actualizado a \"" + etiquetasEstadoPedido[estado] + "\".", tipo: "success" });
+            consulta.recargar();
+        } catch (error) {
+            setMensaje({ texto: mensajeDeError(error, "No se pudo actualizar el pedido."), tipo: "danger" });
         }
     };
 
@@ -36,10 +44,13 @@ function AdminPedidos() {
                     />
                 </div>
             </div>
-            <Alerta texto={mensaje} alCerrar={() => setMensaje("")} />
+            <Alerta texto={mensaje.texto} tipo={mensaje.tipo} alCerrar={() => setMensaje({ ...mensaje, texto: "" })} />
             <div className="card">
                 <div className="card-body">
-                    <TablaPedidos pedidos={visibles} alActualizar={actualizar} />
+                    <EstadoCarga cargando={consulta.cargando} error={consulta.error} alReintentar={consulta.recargar} texto="Cargando pedidos..." />
+                    {consulta.datos && (
+                        <TablaPedidos pedidos={visibles} alActualizar={(id, estado, seguimiento) => void actualizar(id, estado, seguimiento)} />
+                    )}
                 </div>
             </div>
         </>

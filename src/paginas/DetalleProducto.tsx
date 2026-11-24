@@ -3,20 +3,32 @@ import { Link, useParams } from "react-router-dom";
 import { obtenerCategoria } from "../datos/categorias";
 import { useCarrito } from "../contexto/useCarrito";
 import { productosServicio } from "../servicios/productosServicio";
+import { useCargar } from "../servicios/useCargar";
 import { formatearPrecio } from "../utilidades/formato";
 import { colorEstadoStock, obtenerEstadoStock, textoEstadoStock } from "../utilidades/stock";
 import Alerta from "../componentes/atomos/Alerta";
 import Boton from "../componentes/atomos/Boton";
 import ImagenProducto from "../componentes/atomos/ImagenProducto";
 import Insignia from "../componentes/atomos/Insignia";
+import EstadoCarga from "../componentes/moleculas/EstadoCarga";
 import SelectorCantidad from "../componentes/moleculas/SelectorCantidad";
 
 function DetalleProducto() {
     const { codigo } = useParams();
-    const producto = productosServicio.obtenerPorCodigo(codigo ?? "");
+    // GET /api/productos/{codigo}; si el código cambia en la URL se vuelve a cargar
+    const consulta = useCargar(() => productosServicio.obtener(codigo ?? ""), codigo);
+    const producto = consulta.datos;
     const { items, agregar } = useCarrito();
     const [cantidad, setCantidad] = useState(1);
     const [mensaje, setMensaje] = useState("");
+
+    if (consulta.cargando || consulta.error) {
+        return (
+            <section className="container py-4">
+                <EstadoCarga cargando={consulta.cargando} error={consulta.error} alReintentar={consulta.recargar} texto="Cargando producto..." />
+            </section>
+        );
+    }
 
     if (!producto) {
         return (

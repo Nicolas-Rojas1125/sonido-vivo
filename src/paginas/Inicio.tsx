@@ -5,9 +5,11 @@ import { beneficios, codigosDestacados, imagenesCarrusel } from "../datos/inicio
 import { tienda } from "../datos/tienda";
 import { useCarrito } from "../contexto/useCarrito";
 import { productosServicio } from "../servicios/productosServicio";
+import { useCargar } from "../servicios/useCargar";
 import type { Producto } from "../tipos/Producto";
 import Alerta from "../componentes/atomos/Alerta";
 import CardInfo from "../componentes/moleculas/CardInfo";
+import EstadoCarga from "../componentes/moleculas/EstadoCarga";
 import Carrusel from "../componentes/organismos/Carrusel";
 import GrillaProductos from "../componentes/organismos/GrillaProductos";
 import Hero from "../componentes/organismos/Hero";
@@ -16,8 +18,10 @@ function Inicio() {
     const { agregar } = useCarrito();
     const [mensaje, setMensaje] = useState("");
 
+    // GET /api/productos (ms-tienda): los destacados se toman del catálogo actual
+    const catalogo = useCargar(() => productosServicio.listar());
     const destacados = codigosDestacados
-        .map((codigo) => productosServicio.obtenerPorCodigo(codigo))
+        .map((codigo) => catalogo.datos?.find((producto) => producto.codigo === codigo))
         .filter((producto): producto is Producto => producto !== undefined);
 
     const agregarProducto = (producto: Producto) => {
@@ -61,7 +65,8 @@ function Inicio() {
                         Productos destacados
                     </h2>
                     <Alerta texto={mensaje} alCerrar={() => setMensaje("")} />
-                    <GrillaProductos productos={destacados} alAgregar={agregarProducto} />
+                    <EstadoCarga cargando={catalogo.cargando} error={catalogo.error} alReintentar={catalogo.recargar} texto="Cargando productos..." />
+                    {catalogo.datos && <GrillaProductos productos={destacados} alAgregar={agregarProducto} />}
                 </section>
 
                 <section aria-labelledby="titulo-beneficios">

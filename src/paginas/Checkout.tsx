@@ -3,8 +3,8 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useCarrito } from "../contexto/useCarrito";
 import { useSesion } from "../contexto/useSesion";
 import { COSTO_DESPACHO } from "../datos/tienda";
+import { mensajeDeError } from "../servicios/api";
 import { pedidosServicio } from "../servicios/pedidosServicio";
-import { productosServicio } from "../servicios/productosServicio";
 import type { DatosCheckout, MedioPago, TipoEntrega } from "../tipos/Pedido";
 import Alerta from "../componentes/atomos/Alerta";
 import FormularioCheckout from "../componentes/organismos/FormularioCheckout";
@@ -18,6 +18,7 @@ function Checkout() {
     // Estado "levantado": el formulario avisa el tipo de entrega y aquí se calcula el costo de envío
     const [tipoEntrega, setTipoEntrega] = useState<TipoEntrega>("despacho");
     const [error, setError] = useState("");
+    const [procesando, setProcesando] = useState(false);
     // Evita que, al vaciar el carrito después de comprar, se redirija al carrito en vez de a "Mis pedidos"
     const [confirmado, setConfirmado] = useState(false);
 
@@ -27,32 +28,33 @@ function Checkout() {
 
     const costoEnvio = tipoEntrega === "despacho" ? COSTO_DESPACHO : 0;
 
-    const confirmar = (datos: DatosCheckout) => {
-        // 1) Se descuenta el stock (si algún producto no alcanza, no se crea el pedido)
-        const resultadoStock = productosServicio.descontarStock(items);
-        if (!resultadoStock.ok) {
-            setError(resultadoStock.mensaje);
-            return;
+    // POST /api/pedidos (ms-tienda). El backend, en UNA transacción:
+    //  - toma los precios desde la base de datos (no confía en los del navegador),
+    //  - descuenta el stock (si un producto no alcanza responde 409 y no se crea nada),
+    //  - calcula el total y guarda el pedido con el correo del token.
+    const confirmar = async (datos: DatosCheckout) => {
+        setProcesando(true);
+        setError("");
+        try {
+            const pedido = await pedidosServicio.crear({
+                clienteNombre: datos.nombre.trim(),
+                telefono: datos.telefono.trim(),
+                items: items.map((item) => ({ codigo: item.codigo, cantidad: item.cantidad })),
+                tipoEntrega,
+                direccion: tipoEntrega === "despacho" ? datos.direccion.trim() : "",
+                comuna: tipoEntrega === "despacho" ? datos.comuna.trim() : "",
+                puntoRetiro: tipoEntrega === "retiro" ? datos.puntoRetiro : "",
+                medioPago: datos.medioPago as MedioPago,
+            });
+
+            // Se vacía el carrito y se muestra el pedido creado
+            setConfirmado(true);
+            vaciar();
+            navegar("/mis-pedidos", { state: { nuevoPedido: pedido.numero } });
+        } catch (e) {
+            setError(mensajeDeError(e, "No se pudo registrar el pedido. Intenta nuevamente."));
+            setProcesando(false);
         }
-
-        // 2) Se registra el pedido
-        const pedido = pedidosServicio.crear({
-            clienteCorreo: usuario?.correo ?? datos.correo,
-            clienteNombre: datos.nombre.trim(),
-            telefono: datos.telefono.trim(),
-            items: items.map((item) => ({ codigo: item.codigo, nombre: item.nombre, precio: item.precio, cantidad: item.cantidad })),
-            tipoEntrega,
-            direccion: tipoEntrega === "despacho" ? datos.direccion.trim() : "",
-            comuna: tipoEntrega === "despacho" ? datos.comuna.trim() : "",
-            puntoRetiro: tipoEntrega === "retiro" ? datos.puntoRetiro : "",
-            medioPago: datos.medioPago as MedioPago,
-            costoEnvio,
-        });
-
-        // 3) Se vacía el carrito y se muestra el pedido creado
-        setConfirmado(true);
-        vaciar();
-        navegar("/mis-pedidos", { state: { nuevoPedido: pedido.numero } });
     };
 
     return (
@@ -68,7 +70,8 @@ function Checkout() {
                                 correoInicial={usuario?.correo ?? ""}
                                 tipoEntrega={tipoEntrega}
                                 alCambiarEntrega={setTipoEntrega}
-                                alConfirmar={confirmar}
+                                alConfirmar={(datos) => void confirmar(datos)}
+                                procesando={procesando}
                             />
                         </div>
                     </div>

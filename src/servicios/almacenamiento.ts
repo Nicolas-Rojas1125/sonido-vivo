@@ -1,10 +1,9 @@
 // Capa pequeña sobre localStorage.
-// Todos los servicios guardan sus datos a través de este objeto, así:
+// Desde la integración con el backend SOLO se usa para el carrito (no es información sensible).
+// Productos, usuarios, pedidos y contactos viven en MySQL (microservicios Spring Boot) y la
+// sesión se maneja con JWT en memoria + refresh token en cookie httpOnly.
 //  1) si el navegador bloquea localStorage, la app sigue funcionando (try/catch)
 //  2) en las pruebas se puede reemplazar (mock) con spyOn(almacenamiento, "leer")
-//
-// Cuando exista el backend Spring Boot (EP3), los servicios llamarán a la API REST
-// en lugar de usar este almacenamiento local.
 
 export const almacenamiento = {
     leer<T>(clave: string, porDefecto: T): T {
@@ -34,9 +33,5 @@ export const almacenamiento = {
 };
 
 export const CLAVES = {
-    productos: "sv_productos",
-    usuarios: "sv_usuarios",
-    pedidos: "sv_pedidos",
-    sesion: "sv_sesion",
     carrito: "sv_carrito",
 };

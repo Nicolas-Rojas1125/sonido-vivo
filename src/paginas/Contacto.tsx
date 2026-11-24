@@ -1,12 +1,35 @@
 import { useState } from "react";
 import { puntosRetiro, tienda } from "../datos/tienda";
+import { contactosServicio } from "../servicios/contactosServicio";
+import type { DatosContacto } from "../tipos/Contacto";
 import Alerta from "../componentes/atomos/Alerta";
 import FormularioContacto from "../componentes/organismos/FormularioContacto";
 import Hero from "../componentes/organismos/Hero";
 import MapaTiendas from "../componentes/organismos/MapaTiendas";
 
 function Contacto() {
-    const [confirmacion, setConfirmacion] = useState("");
+    const [aviso, setAviso] = useState<{ texto: string; tipo: "success" | "danger" }>({ texto: "", tipo: "success" });
+
+    // Envía el mensaje al microservicio Spring Boot, que lo guarda en MySQL.
+    // Devuelve false si falló, para que el formulario no se limpie.
+    const enviarMensaje = async (datos: DatosContacto): Promise<boolean> => {
+        setAviso({ texto: "", tipo: "success" });
+        try {
+            await contactosServicio.enviar(datos);
+            setAviso({
+                texto: "¡Gracias, " + datos.nombre.trim() + "! Recibimos tu mensaje y te responderemos el mismo día.",
+                tipo: "success",
+            });
+            return true;
+        } catch (error) {
+            console.error("Error al enviar el contacto:", error);
+            setAviso({
+                texto: "No se pudo enviar el mensaje. Intenta nuevamente en unos minutos o escríbenos por WhatsApp.",
+                tipo: "danger",
+            });
+            return false;
+        }
+    };
 
     return (
         <>
@@ -20,14 +43,8 @@ function Contacto() {
                                 <h2 id="titulo-formulario" className="h4 mb-3">
                                     Envíanos un mensaje
                                 </h2>
-                                <Alerta texto={confirmacion} alCerrar={() => setConfirmacion("")} />
-                                <FormularioContacto
-                                    alEnviar={(datos) =>
-                                        setConfirmacion(
-                                            "¡Gracias, " + datos.nombre.trim() + "! Recibimos tu mensaje y te responderemos el mismo día."
-                                        )
-                                    }
-                                />
+                                <Alerta texto={aviso.texto} tipo={aviso.tipo} alCerrar={() => setAviso({ ...aviso, texto: "" })} />
+                                <FormularioContacto alEnviar={enviarMensaje} />
                             </div>
                         </div>
                     </section>

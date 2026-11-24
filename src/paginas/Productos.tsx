@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { obtenerCategoria } from "../datos/categorias";
 import { useCarrito } from "../contexto/useCarrito";
 import { productosServicio } from "../servicios/productosServicio";
+import { useCargar } from "../servicios/useCargar";
 import type { CategoriaFiltro, Producto } from "../tipos/Producto";
 import { filtrarProductos, ordenarProductos } from "../utilidades/filtros";
 import type { Orden } from "../utilidades/filtros";
@@ -10,6 +11,7 @@ import { esCategoria } from "../utilidades/validaciones";
 import Alerta from "../componentes/atomos/Alerta";
 import Selector from "../componentes/atomos/Selector";
 import CampoFormulario from "../componentes/moleculas/CampoFormulario";
+import EstadoCarga from "../componentes/moleculas/EstadoCarga";
 import FiltroCategorias from "../componentes/moleculas/FiltroCategorias";
 import GrillaProductos from "../componentes/organismos/GrillaProductos";
 import Hero from "../componentes/organismos/Hero";
@@ -32,7 +34,9 @@ function Productos() {
     const [mensaje, setMensaje] = useState("");
     const { agregar } = useCarrito();
 
-    const productos = ordenarProductos(filtrarProductos(productosServicio.obtenerTodos(), categoria, busqueda), orden);
+    // GET /api/productos una sola vez; filtros, búsqueda y orden se aplican en el navegador (sin más peticiones)
+    const catalogo = useCargar(() => productosServicio.listar());
+    const productos = ordenarProductos(filtrarProductos(catalogo.datos ?? [], categoria, busqueda), orden);
     const infoCategoria = obtenerCategoria(categoria);
 
     const seleccionarCategoria = (nueva: CategoriaFiltro) => {
@@ -83,11 +87,14 @@ function Productos() {
 
                 <Alerta texto={mensaje} alCerrar={() => setMensaje("")} />
 
-                <GrillaProductos
-                    productos={productos}
-                    alAgregar={agregarProducto}
-                    mensajeVacio="No se encontraron productos con los filtros seleccionados."
-                />
+                <EstadoCarga cargando={catalogo.cargando} error={catalogo.error} alReintentar={catalogo.recargar} texto="Cargando catálogo..." />
+                {catalogo.datos && (
+                    <GrillaProductos
+                        productos={productos}
+                        alAgregar={agregarProducto}
+                        mensajeVacio="No se encontraron productos con los filtros seleccionados."
+                    />
+                )}
             </div>
         </>
     );

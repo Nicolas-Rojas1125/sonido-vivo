@@ -1,6 +1,6 @@
 import type { Pedido } from "../tipos/Pedido";
 
-// Pedidos de ejemplo para que el panel de administración no parta vacío
+// Pedidos de ejemplo (el backend los carga con V5__insertar_pedidos_ejemplo.sql de ms-tienda; aquí se usan en las pruebas)
 export const pedidosIniciales: Pedido[] = [
     {
         id: 1,

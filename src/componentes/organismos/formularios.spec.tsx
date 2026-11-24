@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { escribir } from "../../test/utilidades";
 import FormularioCheckout from "./FormularioCheckout";
 import FormularioContacto from "./FormularioContacto";
@@ -19,19 +19,53 @@ describe("Organismo FormularioContacto", () => {
         expect(alEnviar).not.toHaveBeenCalled();
     });
 
-    it("con datos válidos llama a alEnviar con los datos y limpia el formulario", () => {
-        const alEnviar = jasmine.createSpy("alEnviar");
-        render(<FormularioContacto alEnviar={alEnviar} />);
+    const completarContacto = () => {
         escribir("Nombre completo", "Camila Soto");
         escribir("Correo electrónico", "camila@correo.cl");
         escribir("Asunto", "reparacion");
         escribir("Mensaje", "Necesito calibrar mi guitarra.");
-        enviar("Enviar mensaje");
+    };
+    const valorNombre = () => (screen.getByLabelText("Nombre completo") as HTMLInputElement).value;
+
+    it("con datos válidos llama a alEnviar con los datos y limpia el formulario", async () => {
+        const alEnviar = jasmine.createSpy("alEnviar");
+        render(<FormularioContacto alEnviar={alEnviar} />);
+        completarContacto();
+        // act async: espera a que termine el envío (manejarEnvio es async) antes de revisar
+        await act(async () => enviar("Enviar mensaje"));
 
         expect(alEnviar).toHaveBeenCalledOnceWith(
             jasmine.objectContaining({ nombre: "Camila Soto", asunto: "reparacion" })
         );
-        expect((screen.getByLabelText("Nombre completo") as HTMLInputElement).value).toBe("");
+        expect(valorNombre()).toBe("");
+    });
+
+    it("mientras se envía al backend deshabilita el botón y muestra 'Enviando...'", async () => {
+        // MOCK: una promesa que no se resuelve hasta que la prueba lo decide
+        let terminar: (valor: boolean) => void = () => {};
+        const alEnviar = jasmine.createSpy("alEnviar").and.returnValue(new Promise<boolean>((r) => (terminar = r)));
+        render(<FormularioContacto alEnviar={alEnviar} />);
+        completarContacto();
+        enviar("Enviar mensaje");
+
+        const boton = await screen.findByRole("button", { name: "Enviando..." });
+        expect((boton as HTMLButtonElement).disabled).toBeTrue();
+        fireEvent.submit(screen.getByRole("form", { name: "Formulario de contacto" }));
+        expect(alEnviar).toHaveBeenCalledTimes(1); // no se envía dos veces
+
+        terminar(true);
+        await screen.findByRole("button", { name: "Enviar mensaje" });
+        expect(valorNombre()).toBe("");
+    });
+
+    it("si el envío falla (alEnviar devuelve false) NO borra lo que escribió el cliente", async () => {
+        const alEnviar = jasmine.createSpy("alEnviar").and.resolveTo(false);
+        render(<FormularioContacto alEnviar={alEnviar} />);
+        completarContacto();
+        enviar("Enviar mensaje");
+
+        await screen.findByRole("button", { name: "Enviar mensaje" });
+        expect(valorNombre()).toBe("Camila Soto");
     });
 });
 

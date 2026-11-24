@@ -60,11 +60,6 @@ export const puntosRetiro: PuntoRetiro[] = [
     },
 ];
 
-// Regla de seguridad del caso (sección 0.2): "ninguna vista ni endpoint del sistema debe estar
-// accesible sin autenticación, excepto las pantallas de inicio de sesión y registro público".
-// Por eso está en false. Cámbialo a true SOLO si tu docente permite ver la tienda sin cuenta.
-export const CATALOGO_PUBLICO = false;
-
 // Costo fijo de despacho a domicilio (Starken / Chilexpress). El retiro en tienda es gratis.
 export const COSTO_DESPACHO = 5990;
 

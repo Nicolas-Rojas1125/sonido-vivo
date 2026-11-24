@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { SubmitEvent } from "react";
+import { asuntosContacto } from "../../datos/contacto";
 import type { DatosContacto, ErroresContacto } from "../../tipos/Contacto";
 import { tieneErrores, validarContacto } from "../../utilidades/validaciones";
 import Boton from "../atomos/Boton";
@@ -8,28 +9,30 @@ import CampoFormulario from "../moleculas/CampoFormulario";
 import CampoSelector from "../moleculas/CampoSelector";
 
 type Props = {
-    alEnviar: (datos: DatosContacto) => void;
+    // Puede ser síncrona o asíncrona (async, cuando envía los datos al backend).
+    // Si devuelve false, el envío falló y el formulario NO se limpia (el cliente no pierde lo que escribió).
+    alEnviar: (datos: DatosContacto) => void | boolean | Promise<void | boolean>;
 };
 
 const datosVacios: DatosContacto = { nombre: "", correo: "", telefono: "", asunto: "", mensaje: "" };
 
-const asuntos = [
-    { valor: "stock", etiqueta: "Consulta de stock o precio" },
-    { valor: "pedido", etiqueta: "Estado de mi pedido" },
-    { valor: "reparacion", etiqueta: "Reparación de instrumento" },
-    { valor: "otro", etiqueta: "Otro" },
-];
-
 function FormularioContacto({ alEnviar }: Props) {
     const [datos, setDatos] = useState<DatosContacto>(datosVacios);
     const [errores, setErrores] = useState<ErroresContacto>({});
+    // Permite indicar que el mensaje se está enviando (deshabilita el botón)
+    const [enviando, setEnviando] = useState(false);
 
     const cambiar = (campo: keyof DatosContacto) => (valor: string) => {
         setDatos({ ...datos, [campo]: valor });
     };
 
-    const manejarEnvio = (e: SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    const manejarEnvio = async (e: SubmitEvent<HTMLFormElement>) => {
+        e.preventDefault(); // Evita recargar la página
+
+        // Evita otro envío mientras la petición está en curso
+        if (enviando) {
+            return;
+        }
 
         const nuevosErrores = validarContacto(datos);
         setErrores(nuevosErrores);
@@ -38,8 +41,18 @@ function FormularioContacto({ alEnviar }: Props) {
             return;
         }
 
-        alEnviar(datos);
-        setDatos(datosVacios);
+        // Comienza el envío
+        setEnviando(true);
+        try {
+            const resultado = await alEnviar(datos);
+            // Limpia los campos solo si se guardó correctamente
+            if (resultado !== false) {
+                setDatos(datosVacios);
+            }
+        } finally {
+            // Finaliza el envío y habilita nuevamente el botón
+            setEnviando(false);
+        }
     };
 
     return (
@@ -86,7 +99,7 @@ function FormularioContacto({ alEnviar }: Props) {
                         etiqueta="Asunto"
                         nombre="asunto"
                         valor={datos.asunto}
-                        opciones={asuntos}
+                        opciones={asuntosContacto}
                         alCambiar={cambiar("asunto")}
                         error={errores.asunto}
                     />
@@ -100,7 +113,7 @@ function FormularioContacto({ alEnviar }: Props) {
                 error={errores.mensaje}
                 placeholder="Cuéntanos qué instrumento buscas o en qué te podemos ayudar..."
             />
-            <Boton texto="Enviar mensaje" tipo="submit" />
+            <Boton texto={enviando ? "Enviando..." : "Enviar mensaje"} tipo="submit" deshabilitado={enviando} />
         </form>
     );
 }

@@ -16,11 +16,12 @@ type Props = {
     textoBoton?: string;
     alGuardar: (datos: DatosNuevoUsuario) => void;
     alCancelar?: () => void;
+    procesando?: boolean; // true mientras se espera la respuesta del backend
 };
 
 const opcionesRol = Object.entries(etiquetasRol).map(([valor, etiqueta]) => ({ valor, etiqueta }));
 
-function FormularioUsuario({ modo, usuarioInicial, textoBoton, alGuardar, alCancelar }: Props) {
+function FormularioUsuario({ modo, usuarioInicial, textoBoton, alGuardar, alCancelar, procesando = false }: Props) {
     const esEdicion = usuarioInicial !== undefined;
 
     const [datos, setDatos] = useState<FormularioUsuarioDatos>({
@@ -120,7 +121,7 @@ function FormularioUsuario({ modo, usuarioInicial, textoBoton, alGuardar, alCanc
                 />
             )}
             <div className="d-flex flex-wrap gap-2">
-                <Boton texto={textoBoton ?? (esEdicion ? "Guardar cambios" : "Crear usuario")} tipo="submit" />
+                <Boton texto={textoBoton ?? (esEdicion ? "Guardar cambios" : "Crear usuario")} tipo="submit" deshabilitado={procesando} />
                 {alCancelar && <Boton texto="Cancelar" variante="outline-secondary" alClick={alCancelar} />}
             </div>
         </form>

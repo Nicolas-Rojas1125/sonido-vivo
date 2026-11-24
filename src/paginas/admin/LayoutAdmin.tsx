@@ -10,6 +10,7 @@ const enlacesAdmin: EnlaceAdmin[] = [
     { ruta: "/admin", texto: "Resumen", roles: ["administrador", "vendedor"] },
     { ruta: "/admin/pedidos", texto: "Pedidos", roles: ["administrador", "vendedor"] },
     { ruta: "/admin/inventario", texto: "Inventario", roles: ["administrador", "vendedor"] },
+    { ruta: "/admin/contactos", texto: "Contactos", roles: ["administrador", "vendedor"] },
     { ruta: "/admin/productos", texto: "Productos", roles: ["administrador"] },
     { ruta: "/admin/usuarios", texto: "Usuarios", roles: ["administrador"] },
 ];
